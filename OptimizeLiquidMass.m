@@ -22,7 +22,7 @@ initial_inputs.CombustionData = fullfile('Combustion Data', 'CombustionData_T1_N
 %-------Gases-----------------------
 
 helium = Gas();
-helium.c_v = 3.12e3; % J/kg*K
+helium.c_v = 3.12; % J/kg*K
 helium.molecular_mass = 4.0026e-3; % kg/mol
 
 nitrogen = Gas();

@@ -219,6 +219,8 @@ ylabel('Fuel CdA (mm^2)');
 % ExportData(time(test_ind),pft(test_ind),pom(test_ind),pot(test_ind),...
 %     zeros(size(time(test_ind))),ft(test_ind),pcc(test_ind))
 
+GenerateThrustCurve((time(burn_ind)), ft(burn_ind), m_ox, m_fuel(1));
+
 %% Subfunctions
 function ExportData(test_time,pft,pom,pot,we,ft,pcc)
     [file,path] = uiputfile('*.mat');

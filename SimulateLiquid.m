@@ -16,7 +16,7 @@ L_to_m3 = 1e-3; % 1 L in m^3
 
 
 %% Options
-test_data.test_plots_on = 1; % Import tests data and plot against simulation data
+test_data.test_plots_on = 0; % Import tests data and plot against simulation data
 test_data.test_data_file = '5_13_18_data.mat'; % File from which to import test data
 test_data.t_offset = 0; % Time offset of test data wrt simulation data [s]
 

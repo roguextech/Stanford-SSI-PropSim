@@ -50,8 +50,8 @@ pcc = data2{1,4}*psi_to_Pa;
 pom_threshold = 50*psi_to_Pa;
 pcc_threshold = 50*psi_to_Pa;
 tau_filter = 0.1; % s
-pom_filt = SimpleFilter(test_time1,pom,tau_filter,'low');
-pcc_filt = SimpleFilter(test_time2,pcc,tau_filter,'low');
+pom_filt = SimpleFilter(test_time1,pom,tau_filter);
+pcc_filt = SimpleFilter(test_time2,pcc,tau_filter);
 burn_start_time = test_time1(find(pom_filt>pom_threshold,1)) - 0.05;
 burn_end_time = test_time1(find(pom_filt<pom_threshold & test_time1>burn_start_time + 0.1,1)) + 0.05;
 burn_start_time2 = test_time2(find(pcc_filt>pcc_threshold,1)) - 0.05;
@@ -100,9 +100,8 @@ ft = ft + we;
 
 %% Filtering
 tau_filter = 1.0; % s
-pft_filt = SimpleFilter(time,pft,tau_filter,'low');
-dp_fuel_filt = SimpleFilter(time,dp_fuel,tau_filter,'low');
-pcc_diff = SimpleFilter(time,dp_fuel,tau_filter,'high');
+pft_filt = SimpleFilter(time,pft,tau_filter);
+dp_fuel_filt = SimpleFilter(time,dp_fuel,tau_filter);
 
 %% Do Calculations
 % Calculate fuel mass flow based on ullage expansion
@@ -121,7 +120,6 @@ fuel_CdA_int = dm_fuel./(sqrt(2*rho_fuel)*...
 % Calculate Performance Characteristics
 Impulse = trapz(time(burn_ind),ft(burn_ind));
 pcc_int = trapz(time(burn_ind),pcc(burn_ind));
-pcc_rms_int = sqrt(trapz(time(burn_ind),pcc_diff(burn_ind).^2));
 C_f = ft./(pcc*A_star);
 C_f_int = Impulse/(pcc_int*A_star);
 c_star_int = (pcc_int*A_star)/(m_ox + dm_fuel_test);
@@ -136,7 +134,6 @@ fprintf('Impulse: %.3g kN*s (%.3g lbf*s)\n', Impulse/1e3, Impulse/lbf_to_N)
 fprintf('Burn Time: %.3g s\n', burn_time)
 fprintf('Avg. Thrust: %.3g kN (%.3g lbf)\n', ft_avg/1e3, ft_avg/lbf_to_N)
 fprintf('Avg. Pcc: %.3g MPa (%.3g psi)\n', pcc_avg/1e6, pcc_avg/psi_to_Pa)
-fprintf('Avg. Pcc RMS: %.3g %%\n', pcc_rms_int/pcc_int*1e2)
 fprintf('Isp: %.3g m/s (%.3g s)\n', Isp, Isp/9.81)
 fprintf('Isp efficiency: %.3g %%\n', Isp/Isp_theo)
 fprintf('C_f: %.3g \n', C_f_int)
@@ -225,14 +222,12 @@ for ii = 1:length(overflow_indices)
 end
 end
 
-function smoothed = SimpleFilter(time,values,tau,type)
+function smoothed = SimpleFilter(time,values,tau)
 dt = median(diff(time));
 Wn = dt/(tau);
 values(isnan(values)) = 0;
-[b, a] = butter(1,Wn,type);
+[b, a] = butter(1,Wn,'low');
 smoothed = filter(b, a, values);
-shift_ind = round(1/(4*Wn));
-smoothed(1:(end-shift_ind)) = smoothed((1+shift_ind):end);
 end
 
 function smoothed = DiffFilter(time,values,tau)
