@@ -65,7 +65,7 @@ inputs.mass_dry_rocket = 50*lbm_to_kg;
 inputs.ox.V_tank = 12.7*L_to_m3; 
 
 %Nitrous Volume
-inputs.ox.V_l = 11.4*L_to_m3; 
+inputs.ox.V_l = 7.5*L_to_m3; 
 
 %Tank Inner Diameter
 inputs.ox.tank_id = 3.75*in_to_m;
@@ -77,7 +77,7 @@ inputs.ox.h_offset_tank = 0*in_to_m;
 inputs.ox.d_flowline = .25*in_to_m;
 
 %Tank Temperature (K)
-inputs.ox.T_tank = N2O_FindT(650*psi_to_Pa);
+inputs.ox.T_tank = N2O_FindT(550*psi_to_Pa);
 
 %-------Oxidizer Pressurant Properties--------
 
