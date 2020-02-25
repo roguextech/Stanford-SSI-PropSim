@@ -48,6 +48,6 @@ function output_file = GenerateThrustCurve(time, F_thrust, Mox, Mfuel)
     fprintf(fid, '%.3f %.3f\n', F_thrust_RASAERO');
     fclose(fid);
 
-    fprintf("Saved thrust curve to F_thrust_RASAERO.txt")
+    fprintf("Saved thrust curve to F_thrust_RASAERO.txt");
 
 end 
