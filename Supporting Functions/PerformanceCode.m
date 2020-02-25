@@ -338,7 +338,7 @@ if options.output_on
     F_thrust_RASAERO = zeros(num_entries,2);
     F_thrust_RASAERO(1:(num_entries),1) = time(round(linspace(2,length(F_thrust),num_entries)))';
     F_thrust_RASAERO(1:(num_entries),2) = F_thrust(round(linspace(2,length(F_thrust),num_entries)))';
-    ic F_thrust_RASAERO(num_entries,:) = [time(end), 0];
+    F_thrust_RASAERO(num_entries,:) = [time(end), 0];
 
     fid = fopen('./Outputs/F_thrust_RASAERO.txt','w');
     fprintf(fid, '; Name diameter(mm) Length(mm) delay propellant_weight(kg) mass(kg)\n');
