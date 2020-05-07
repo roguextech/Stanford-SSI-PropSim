@@ -11,9 +11,10 @@ lbm_to_kg = 0.453592; % 1 lbm in kg
 atm_to_Pa = 101325; % 1 atm in Pa
 L_to_m3 = 1e-3; % 1 L in m^3
 
-%content = fopen( 'C:\Users\James\Desktop\AA284B\POM-PFT-POT-Weight-Thrust.txt', 'r' ) ;
-content = fopen( '..\Test Data\IREC_2018.txt', 'r' ) ;
-data1 = textscan(content, '%s %s %f %f %f %f %f %f %f', 'Delimiter',', \t', 'HeaderLines', 1 );
+% content = fopen( '..\Test Data\IREC_2018.txt', 'r' ) ;
+% data1 = textscan(content, '%s %s %f %f %f %f %f %f %f', 'Delimiter',', \t', 'HeaderLines', 1 );
+
+data = xlsread("Test Data/2020_03_08_Coldflow.xlsx");
 
 %% User Input
 t_shutoff_fuel = 9.95; % s, time at shutoff of fuel

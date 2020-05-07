@@ -12,8 +12,8 @@ function output_file = GenerateThrustCurve(time, F_thrust, Mox, Mfuel)
 % 
 % OUTPUTS:
 % - Saves to folder RasAero input file. 
-    F_thrust
-    impulse = trapz(time, F_thrust)
+    F_thrust;
+    impulse = trapz(time, F_thrust);
 
     % F_thrust_RASAERO must be less than or equal to 32 entries
     % Inputs
