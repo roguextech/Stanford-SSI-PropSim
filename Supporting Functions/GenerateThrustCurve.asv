@@ -1,0 +1,53 @@
+function output_file = GenerateThrustCurve(time, F_thrust, Mox, Mfuel)
+% Intake a force time history and output a RasAero-compative thrust curve
+% file. 
+% 
+% NOTE: this code currently autofills a bunch of stuff and so is mostly
+% appropriate for SSI Olympus Prop use only. Future goal is to generalize
+% it. 
+% 
+% INPUTS:
+% - time - must include ONLY the relevant parts of the time history
+% - F_thrust - must include ONLY the relevant parts of the time history. 
+% 
+% OUTPUTS:
+% - Saves to folder RasAero input file. 
+    F_thrust
+    impulse = trapz(time, F_thrust);
+
+    % F_thrust_RASAERO must be less than or equal to 32 entries
+    % Inputs
+    num_entries = 30;
+    motor_designation = 'I';           
+    length_motorcase = 2438.4; %casing length in millimeters
+    delay = 'P'; %always P for plugged (no ejection charge)
+    dry_weight = 11.94; %kg
+    diameter = 143; %motor casing diameter in millimeters
+    manufacturer = 'SSI';
+    switch impulse
+        case (impulse < 10200)
+            motor_class = 'M';
+        case (impulse >= 10200) && (impulse < 20500)
+            motor_class = 'N';
+        otherwise
+            motor_class = 'O';
+    end
+
+    engine_name = sprintf('%s%.0f-%s', motor_class, 100 * round(impulse/100), motor_designation);
+    propellant_weight = Mox + Mfuel; %kg
+    tot_weight = dry_weight + propellant_weight; %kg
+
+    F_thrust_RASAERO = zeros(num_entries,2);
+    F_thrust_RASAERO(1:(num_entries),1) = time(round(linspace(2,length(F_thrust),num_entries)))';
+    F_thrust_RASAERO(1:(num_entries),2) = F_thrust(round(linspace(2,length(F_thrust),num_entries)))';
+%     ic F_thrust_RASAERO(num_entries,:) = [time(end), 0];
+
+    fid = fopen('../Outputs/F_thrust_RASAERO.txt','w');
+    fprintf(fid, '; Name diameter(mm) Length(mm) delay propellant_weight(kg) mass(kg)\n');
+    fprintf(fid, '%s %.0d %.0f %s %.2f %.2f %s\n', engine_name, diameter, length_motorcase, delay, propellant_weight, tot_weight, manufacturer);
+    fprintf(fid, '%.3f %.3f\n', F_thrust_RASAERO');
+    fclose(fid);
+
+    fprintf("Saved thrust curve to F_thrust_RASAERO.txt");
+
+end 
