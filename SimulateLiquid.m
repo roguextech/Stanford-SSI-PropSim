@@ -96,7 +96,7 @@ inputs.ox_pressurant.active = 0;
 %Tank Volume
 inputs.fuel.V_tank = 1.88*L_to_m3; 
 
-%Nitrous Volume
+%Fuel Volume
 inputs.fuel.V_l = 0.66*1.00*L_to_m3; 
 
 %Tank Inner Diameter
