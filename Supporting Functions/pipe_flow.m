@@ -1,6 +1,6 @@
 % Calculates pressure loss (>0) due to friction and height.
 % Inputs: fluid density rho, velocity u, diameter d,length l, 
-% pipe roughness e, kinematic viscosity v, and height del_h.
+% pipe roughness e, kinematic viscosity v, and height del_h
 
 function [del_p] = pipe_flow(rho, u, d, l, e, v, del_h)
     r = (u*d)/(v*10^-6); % v given * 10^-6 m^2/s
