@@ -1,6 +1,6 @@
 clear; clc; close all;
 
-P1 = 4481.6; %kPa
+P1 = 4481.59; %kPa
 T1 = 250; %K
 b1 = -6.71893;
 b2 = 1.3596;
@@ -18,7 +18,7 @@ gamma = 1.4;
 syms M;
 eqn = 1 == (((gamma+1)/2)^((gamma+1)/(2*(gamma-1)))*(M/(1+(((gamma-1)/2)*M^2)^((gamma+1)/(2*(gamma-1))))));
 M = solve(eqn);
-T2 = Tstagnation * [1 + M^2 * (gamma-1)/2]; %K
+T2 = Tstagnation * (1 + M^2 * (gamma-1)/2); %K
 
 % function T = orifice_temp(P1, T1)
 % 
