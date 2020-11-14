@@ -755,7 +755,7 @@ else
 end
 Q = m_dot_f/inputs.fuel.rho;
 
-%% Oxidizer tank draining
+%% Fuel tank draining
 dW = -(state.p_fueltank)*Q; % work done on gas by liquid
 T_dot_drain = dW/(state.m_fueltank_press*inputs.fuel_pressurant.gas_properties.c_v);
 end
