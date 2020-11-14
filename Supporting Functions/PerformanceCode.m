@@ -351,7 +351,7 @@ if options.output_on
         ox_mass = strcat("_oxMass", Mox);
         ox_vol = strcat("_oxVol", inputs.ox.V_l);
         file_name = strcat("PerformanceCode_" + datestr(now,'HH:MM:SS.FFF'));
-        file_name = strcat(file_name, ox_mass
+        file_name = strcat(file_name, ox_mass)
         file_name = strcat(file_name, ox_vol);
         file_name = strcat(file_name, ".txt");
 
