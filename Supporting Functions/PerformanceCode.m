@@ -345,10 +345,35 @@ if options.output_on
     fprintf(fid, '%s %.0d %.0f %s %.2f %.2f %s\n', engine_name, diameter, length_motorcase, delay, propellant_weight, tot_weight, manufacturer);
     fprintf(fid, '%.3f %.3f\n', F_thrust_RASAERO');
     fclose(fid);
-end
 
+    %% Save Results
+    if options.save
+        ox_mass = strcat("_oxMass", Mox);
+        ox_vol = strcat("_oxVol", inputs.ox.V_l);
+        file_name = strcat("PerformanceCode_" + datestr(now,'HH:MM:SS.FFF'));
+        file_name = strcat(file_name, ox_mass
+        file_name = strcat(file_name, ox_vol);
+        file_name = strcat(file_name, ".txt");
 
+        fileID = fopen(file_name,'w');
 
+        fprintf(fileID, "test_time: [%g", test_time);
+        fprintf(fileID, "]\n");
+        fprintf(fileID, "pft: %d", pft);
+        fprintf(fileID, "]\n");
+        fprintf(fileID, "pom: %d", pom);
+        fprintf(fileID, "]\n");
+        fprintf(fileID, "test_time: %d", test_time);
+        fprintf(fileID, "]\n");
+        fprintf(fileID, "we: %d", we);
+        fprintf(fileID, "]\n");
+        fprintf(fileID, "ft: %d", ft);
+        fprintf(fileID, "]\n");
+        fprintf(fileID, "pcc: %d", pcc);
+        fprintf(fileID, "]\n");
+
+        fclose(file_name);
+    end
 end
 
 function [test_time, pft, pom, pot, we, ft, pcc] = LoadDataVars(filename, t_offset)
