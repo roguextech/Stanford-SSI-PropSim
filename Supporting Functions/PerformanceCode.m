@@ -48,7 +48,8 @@ atm_to_Pa = 101325; % 1 atm in Pa
 default_options.t_final  =  60;    % Integration time limit
 default_options.dt      = 0.01;  % Timestep [s]
 default_options.output_on = true;
-if nargin < 4
+default_options.save = true;
+if nargin < 5
     options = default_options;
 else
     if ~isfield(options, 't_final')
@@ -351,7 +352,7 @@ if options.output_on
         ox_mass = strcat("_oxMass", Mox);
         ox_vol = strcat("_oxVol", inputs.ox.V_l);
         file_name = strcat("PerformanceCode_" + datestr(now,'HH:MM:SS.FFF'));
-        file_name = strcat(file_name, ox_mass
+        file_name = strcat(file_name, ox_mass);
         file_name = strcat(file_name, ox_vol);
         file_name = strcat(file_name, ".txt");
 
