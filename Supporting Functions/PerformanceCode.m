@@ -48,7 +48,8 @@ atm_to_Pa = 101325; % 1 atm in Pa
 default_options.t_final  =  60;    % Integration time limit
 default_options.dt      = 0.01;  % Timestep [s]
 default_options.output_on = true;
-if nargin < 4
+default_options.save = true;
+if nargin < 5
     options = default_options;
 else
     if ~isfield(options, 't_final')
@@ -345,6 +346,7 @@ if options.output_on
     fprintf(fid, '%s %.0d %.0f %s %.2f %.2f %s\n', engine_name, diameter, length_motorcase, delay, propellant_weight, tot_weight, manufacturer);
     fprintf(fid, '%.3f %.3f\n', F_thrust_RASAERO');
     fclose(fid);
+<<<<<<< HEAD
     
     %% Save Results
     if options.save
@@ -377,51 +379,3 @@ if options.output_on
 end
 
 
-
-end
-
-function [test_time, pft, pom, pot, we, ft, pcc] = LoadDataVars(filename, t_offset)
-    test_time = 0;
-    pft = 0;
-    pom = 0;
-    pot = 0;
-    we = 0;
-    ft = 0;
-    pcc = 0;
-    load(['.\Test Data\' filename])
-    test_time = test_time + t_offset;
-    if length(test_time) == 1
-        error('Variable ''test_time'' not present in imported data.\n');
-    end
-    
-%     Create emp_oxtanky vectors for missing data
-%     n_indices = length(test_time);
-%     if length(force_thrust) == 1
-%         fprintf('Warning: ''force_thrust'' missing!\n');
-%         force_thrust = zeros(1,n_indices);
-%     end
-%     if length(tank_top_pressure) == 1
-%         fprintf('Warning: ''tank_top_pressure'' missing!\n');
-%         tank_top_pressure = zeros(1,n_indices);
-%     end
-%     if length(tank_bottom_pressure) == 1
-%         fprintf('Warning: ''tank_bottom_pressure'' missing!\n');
-%         tank_bottom_pressure = zeros(1,n_indices);
-%     end
-%     if length(tank_top_temperature) == 1
-%         fprintf('Warning: ''tank_top_temperature'' missing!\n');
-%         tank_top_temperature = zeros(1,n_indices);
-%     end
-%     if length(tank_bottom_temperature) == 1
-%         fprintf('Warning: ''tank_bottom_temperature'' missing!\n');
-%         tank_bottom_temperature = zeros(1,n_indices);
-%     end
-%     if length(combustion_chamber_pressure) == 1
-%         fprintf('Warning: ''combustion_chamber_pressure'' missing!\n');
-%         combustion_chamber_pressure = zeros(1,n_indices);
-%     end
-%     if length(pressure_drop) == 1
-%         fprintf('Warning: ''pressure_drop'' missing!\n');
-%         pressure_drop = zeros(1,n_indices);
-%     end
-end
