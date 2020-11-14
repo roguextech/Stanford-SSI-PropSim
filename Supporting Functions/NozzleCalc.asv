@@ -55,17 +55,18 @@ else
     % Choked flow, normal shock in diverging section
     ischoked = 1;
     options = optimoptions('fsolve', 'TolX', 1e-3, 'Display', 'off');
-    E_shock = fsolve( @(E_shock) SolveNormShock(E_shock, A_throat, ...
-        A_exit, gamma, R_spec, p0, T0, p_back), 0.5*E, options);
+%     E_shock = fsolve( @SolveNormShock, 0.5*E, options);
+    syms e_shock
+    eqn = [p_back, u_exit, m_dot, M_e] == NormalShockCalc( A_throat, ...
+        e_shock*A_throat, A_exit, gamma, R_spec, p0, T0);
+    E_shock = vpasolve(eqn,e_shock,.5*E);
+
     [p_exit, u_exit, m_dot, M_e] = NormalShockCalc( A_throat, E_shock*A_throat, ...
     A_exit, gamma, R_spec, p0, T0);
 end
 
-
-end
-
 function [value] = SolveNormShock( E_shock, A_throat, ...
-        A_exit, gamma, R_spec, p0, T0, p_back )
+        A_exit, gamma, R_spec, p0, T0 )
     % Compute pressure difference between exit and ambient for shock in
     % diverging part of nozzle. 
     % Conditions:
@@ -75,9 +76,13 @@ function [value] = SolveNormShock( E_shock, A_throat, ...
     % - 3: at nozzle exit
     % - B: period after shock
     
+    
+
     [p_exit_guess, ~, ~, ~] = NormalShockCalc( A_throat, ...
         E_shock*A_throat, A_exit, gamma, R_spec, p0, T0);
     value = p_exit_guess - p_back;
+end
+
 end
 
 function [p_exit] = FindChokedPCrit(gamma, p0)
