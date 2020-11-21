@@ -104,3 +104,30 @@ Nozzle:
    also applied. 
 Integration:
  - Euler's method is used for integration, using a constant time step.
+
+----------------------------------------------
+TODO:
+Useability: 
+- Creation of a format for storing run data, so that runs can be stored and 
+  graphed without rerunning the code every time and even more easily compared. 
+- Reformatting the data analysis function for user-friendliness. (Should come 
+  after above). 
+- Using a Python wrapper to create a good GUI. 
+- Stretch goal: full python port. 
+
+Accuracy:
+- Upgrading of integration method. Removal of all of the Euler elements remaining
+  in the integrator, so that it's fully handled by variable timestep ode15s. 
+- Implementing of drag in flow lines and cooling from orifices in mainline code. 
+- Upgrading of nitrous tank model to simulate pressure dip. Ongoing research effort. 
+  Could possibly approximate by just preventing boil off for a certain time during burn.  
+- Replacing the Van der Waals equations of state with Peng-Robinson for greater accuracy 
+  at supercritical temperatures. 
+
+Capability: 
+- Create tool for analyzing accelerometer data for combustion stability. 
+- Create GSE analysis tools. Given a launch time, how long do we have for tank load 
+  before we reach supercritical? Input those settings into launch. 
+- Monte Carlo simulation. Be able to input a spread of input parameters and have the 
+  code automatically provide the spread in a given output parameter. 
+- Add more propellant combinations to the database. 
