@@ -18,6 +18,9 @@ Features:
    external pressurant gas supply tank with a regulator. 
  - Over fifteen plotting outputs allowing extensive insight into rocket 
    motor dynamics.
+   
+Requirements:
+- This code requires the MATLAB Optimization toolbox. Please make sure you have it installed before using!
 
 ----------------------------------------------
 MAIN SCRIPTS
