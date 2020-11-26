@@ -48,7 +48,8 @@ atm_to_Pa = 101325; % 1 atm in Pa
 default_options.t_final  =  60;    % Integration time limit
 default_options.dt      = 0.01;  % Timestep [s]
 default_options.output_on = true;
-if nargin < 4
+default_options.save = true;
+if nargin < 5
     options = default_options;
 else
     if ~isfield(options, 't_final')
@@ -345,6 +346,92 @@ if options.output_on
     fprintf(fid, '%s %.0d %.0f %s %.2f %.2f %s\n', engine_name, diameter, length_motorcase, delay, propellant_weight, tot_weight, manufacturer);
     fprintf(fid, '%.3f %.3f\n', F_thrust_RASAERO');
     fclose(fid);
+   
+    
+    %% Save Results
+    if options.save
+        file_name = strcat("Logs/PerformanceCode_" + datestr(now,'HH-MM-SS'));
+        file_name = strcat(file_name, ".txt");
+        fileID = fopen(file_name,'w+');
+        
+        fprintf(fileID, "F_thrust: [");
+        fprintf(fileID, "%g, ", record.F_thrust);
+        fprintf(fileID, "]\n");
+        
+        fprintf(fileID, "p_cc: [");
+        fprintf(fileID, "%g, ", record.p_cc);
+        fprintf(fileID, "]\n");
+        
+        fprintf(fileID, "p_oxtank: [");
+        fprintf(fileID, "%g, ", record.p_oxtank);
+        fprintf(fileID, "]\n");
+        
+        fprintf(fileID, "p_oxpresstank: [");
+        fprintf(fileID, "%g, ", record.p_oxpresstank);
+        fprintf(fileID, "]\n");
+        
+        fprintf(fileID, "p_fueltank: [");
+        fprintf(fileID, "%g, ", record.p_fueltank);
+        fprintf(fileID, "]\n");
+        
+        fprintf(fileID, "p_fuelpresstank: [");
+        fprintf(fileID, "%g, ", record.p_fuelpresstank);
+        fprintf(fileID, "]\n");
+        
+        fprintf(fileID, "p_oxmanifold: [");
+        fprintf(fileID, "%g, ", record.p_oxmanifold);
+        fprintf(fileID, "]\n");
+        
+        fprintf(fileID, "T_oxtank: [");
+        fprintf(fileID, "%g, ", record.T_oxtank);
+        fprintf(fileID, "]\n");
+        
+        fprintf(fileID, "T_cc: [");
+        fprintf(fileID, "%g, ", record.T_cc);
+        fprintf(fileID, "]\n");
+        
+        fprintf(fileID, "area_core: [");
+        fprintf(fileID, "%g, ", record.area_core);
+        fprintf(fileID, "]\n");
+        
+        fprintf(fileID, "OF: [");
+        fprintf(fileID, "%g, ", record.OF_i);
+        fprintf(fileID, "]\n");
+        
+        fprintf(fileID, "gamma_ex: [");
+        fprintf(fileID, "%g, ", record.gamma_ex);
+        fprintf(fileID, "]\n");
+        
+        fprintf(fileID, "m_dot_ox: [");
+        fprintf(fileID, "%g, ", record.m_dot_ox);
+        fprintf(fileID, "]\n");
+        
+        fprintf(fileID, "m_dot_fuel: [");
+        fprintf(fileID, "%g, ", record.m_dot_fuel);
+        fprintf(fileID, "]\n");
+        
+        fprintf(fileID, "p_crit: [");
+        fprintf(fileID, "%g, ", record.p_crit);
+        fprintf(fileID, "]\n");
+        
+        fprintf(fileID, "m_dot_ox_crit: [");
+        fprintf(fileID, "%g, ", record.m_dot_ox_crit);
+        fprintf(fileID, "]\n");
+        
+        fprintf(fileID, "M_e: [");
+        fprintf(fileID, "%g, ", record.M_e);
+        fprintf(fileID, "]\n");
+        
+        fprintf(fileID, "p_exit: [");
+        fprintf(fileID, "%g, ", record.p_exit);
+        fprintf(fileID, "]\n");
+        
+        fprintf(fileID, "p_shock: [");
+        fprintf(fileID, "%g, ", record.p_shock);
+        fprintf(fileID, "]\n");
+
+        fclose('all'); 
+    end
 end
 
 
