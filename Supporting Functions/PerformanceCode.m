@@ -295,7 +295,7 @@ if options.output_on
         ylabel('Exit Mach Number ()')
         legend('Simulation')
     end
-
+end
     %Use trapezoidal integration
     impulse = trapz(time, F_thrust);
     Mox_initial = record.m_ox(1);
@@ -312,7 +312,7 @@ if options.output_on
         Mox/Mfuel);
     fprintf('Isp: %.1f s\t\tC*: %.0f m/s\t\tC_f: %.2f\n', ...
         record.Isp/g_0, record.c_star, record.c_f)
-
+if options.output_on
     % F_thrust_RASAERO must be less than or equal to 32 entries
     % Inputs
     num_entries = 30;

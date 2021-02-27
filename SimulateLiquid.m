@@ -83,7 +83,7 @@ inputs.ox.T_tank = 287.99043;
 
 inputs.ox_pressurant = Pressurant('oxidizer');
 inputs.ox_pressurant.gas_properties = helium;
-inputs.ox_pressurant.set_pressure = 750*psi_to_Pa;
+inputs.ox_pressurant.set_pressure = 700*psi_to_Pa;
 inputs.ox_pressurant.storage_initial_pressure = 4500*psi_to_Pa;
 inputs.ox_pressurant.tank_volume = 3.5*L_to_m3;
 inputs.ox_pressurant.flow_CdA = 8*mm_to_m^2;
