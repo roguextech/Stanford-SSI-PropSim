@@ -47,7 +47,10 @@ atm_to_Pa = 101325; % 1 atm in Pa
 %% Integration Parameters
 default_options.t_final  =  60;    % Integration time limit
 default_options.dt      = 0.01;  % Timestep [s]
-default_options.output_on = true;
+default_options.output_on = false; % if this is on, all variables below are considered to be true
+default_options.plots_on = true; % plot results
+default_options.RAS_on = true; % create .eng thrust curve for use in OpenRocket or RASAero
+default_options.print_on = true; % print out summary information
 if nargin < 4
     options = default_options;
 else
@@ -59,6 +62,12 @@ else
     end
     if ~isfield(options, 'output_on')
         options.output_on = default_options.output_on;
+    end
+    if ~isfield(options, 'plots_on')
+        options.plots_on = default_options.plots_on;
+    end
+    if ~isfield(options, 'print_on')
+        options.print_on = default_options.print_on;
     end
 end
 tspan = 0:options.dt:options.t_final;
@@ -114,7 +123,7 @@ if options.output_on
 end
 
 %% Plot Results
-if options.output_on
+if options.output_on || options.plots_on
     if test_data.test_plots_on
         % Load Imported Data for comparison
         [test_time, pft, pom, pot, we, ft, pcc] = LoadDataVars(test_data.test_data_file, test_data.t_offset);
@@ -296,6 +305,7 @@ if options.output_on
         legend('Simulation')
     end
 end
+if options.output_on || options.print_on
     %Use trapezoidal integration
     impulse = trapz(time, F_thrust);
     Mox_initial = record.m_ox(1);
@@ -312,7 +322,8 @@ end
         Mox/Mfuel);
     fprintf('Isp: %.1f s\t\tC*: %.0f m/s\t\tC_f: %.2f\n', ...
         record.Isp/g_0, record.c_star, record.c_f)
-if options.output_on
+end
+if options.output_on || options.RAS_on
     % F_thrust_RASAERO must be less than or equal to 32 entries
     % Inputs
     num_entries = 30;
