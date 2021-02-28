@@ -11,6 +11,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import tkinter.messagebox as msg
 import tkinter.filedialog as dialog
+import threading
 from io import StringIO
 
 class SimPage(ttk.Frame):
@@ -35,6 +36,7 @@ class SimPage(ttk.Frame):
         self.scrollbar = None # scrollbar
 
         self.matlabeng = None
+        self.inputPane = None
 
     def prebuild(self, matlabeng):
         ''' Must be implemented by inheritor, even if just passes. If certain structs or variables need to
@@ -101,15 +103,26 @@ class SimPage(ttk.Frame):
                 self.build()
                 break # once you've built once, break
 
-        print("Starting MATLAB run. The window may become unresponsive for a few seconds.", flush=True)
+        print("Starting MATLAB run. Please do not switch tabs or close.", flush=True)
         print('>> ' + self.name, flush =True)
+        run_thread = threading.Thread(target = self._thread_run, name='run_thread')
+        run_thread.start()
+    
+    def _thread_run(self):
+        ''' Function for running in separate thread. '''
         output = StringIO() # use a stringIO object to collect MATLAB output
         try:
+            self.validate_button['state'] = 'disabled'
+            self.run_button['state'] = 'disabled'
+            self.inputPane.disable_tabs()
             self.run(output)
         finally:
             print(output.getvalue()) # print stringIO stuff
             print()
             output.close()
+            self.validate_button['state'] = 'normal'
+            self.run_button['state'] = 'normal'
+            self.inputPane.enable_tabs()
         self.ans = self.matlabeng.workspace['ans'] # collect answer struct
         self.saved = False # the new answer has not been saved yet!
         print("Run complete.")
@@ -117,6 +130,7 @@ class SimPage(ttk.Frame):
     def makewidget(self, parent, matlabeng):
         ''' Uses the ttk.Frame constructor to initialize the frame, then builds and adds each section plus the Validate and Run buttons. '''
         self.matlabeng = matlabeng
+        self.inputPane = parent
         super().__init__(parent) # use super constructor
         # create a vertical scrollbar
         vscrollbar = tk.Scrollbar(self, orient = tk.VERTICAL)

@@ -48,6 +48,16 @@ class InputPane(ttk.Notebook):
     def set_simpage(self, new_tab):
         self.select(new_tab)
 
+    def enable_tabs(self):
+        for i in range(len(self.simpages)):
+            if i is not self.curr_tab:
+                self.tab(i, state = 'normal')
+
+    def disable_tabs(self):
+        for i in range(len(self.simpages)):
+            if i is not self.curr_tab:
+                self.tab(i, state = 'disabled')
+
     def ontabchange(self):
         if self.curr_tab is None:
             self.curr_tab = self.index(self.select())

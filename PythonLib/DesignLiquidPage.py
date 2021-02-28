@@ -12,8 +12,8 @@ from .SimPage import SimPage
 ''' Create input variables for DesignLiquid and organize into Sections. '''
 #Goal
 max_thrust = EntryVar('max_thrust','400 [N]','N','goal','The maximum desired thrust.')
-goal_of = EntryVar('OF','8.0','non','goal','The desired average OF ratio.')
-goal_impulse = EntryVar('total_impulse','18 [N]','m','goal','The desired total impulse (times seconds).')
+goal_of = EntryVar('OF','8.0','none','goal','The desired average OF ratio.')
+goal_impulse = EntryVar('total_impulse','18 [N]','N','goal','The desired total impulse (times seconds).')
 min_fuel_dp = EntryVar('min_fuel_dp','0.25','none','goal','The minimum fuel injector dp as a decimal percentage [0,1] of tank pressure.')
 min_ox_dp = EntryVar('min_ox_dp','0.35','none','goal','The minimum fuel injector dp as a decimal percentage [0,1] of tank pressure.')
 ox_to_fuel_time = EntryVar('T_tank','1.0','none','goal','The ratio of ox flow time to fuel flow time.')
@@ -156,7 +156,7 @@ class DesignLiquidPage(SimPage):
         matlabeng.eval("initial_inputs.comb_data = load(initial_inputs.CombustionData) ; initial_inputs.comb_data = initial_inputs.comb_data.CombData ;", nargout = 0)
 
     def run(self, stdout):
-        input_struct_str = ','.join(self.initial_inputstructs) + ', true' # input struct, also needs plot out indicator
+        input_struct_str = ','.join(self.inputstructs) + ', true' # input struct, also needs plot out indicator
         
         self.matlabeng.eval( 'DesignLiquid(' + input_struct_str + ') ;' , nargout = 0, stdout = stdout)
 
