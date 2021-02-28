@@ -26,6 +26,17 @@ class GasVar(InputVar):
 
     def put(self, val):
         ''' Set current value of self.var. '''
+
+        if isinstance(val, dict): # if setting using a Gas object dict
+            for gas_name in gas_library.keys():
+                if val == gas_library[gas_name]:
+                    val = gas_name
+                    break
+            if val not in gas_library and 'c_v' in val and 'molecular_mass' in val: # if failed to find an existing gas, create new one!
+                gas_library['loaded_gas'] = val
+                val = 'loaded_gas'
+
+        #self.widget['menu'].configure(state = 'normal')
         self.var.set(val)
 
     def get_type(self):

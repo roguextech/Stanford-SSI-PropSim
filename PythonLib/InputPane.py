@@ -39,6 +39,10 @@ class InputPane(ttk.Notebook):
     def saveas_sim(self):
         self.simpages[self.curr_tab].saveworkspaceas()
 
+    def load_sim(self):
+        if self.promptsave_sim():
+            self.simpages[self.curr_tab].loadworkspace()
+
     def restoredefaults(self):
         self.simpages[self.curr_tab].restoredefaults() 
 

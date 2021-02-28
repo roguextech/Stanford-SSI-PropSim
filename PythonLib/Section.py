@@ -16,6 +16,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 
 from .ToggleVar import ToggleVar
+from .GasVar import GasVar
 
 class Section(ttk.Frame):
     def __init__(self, name, inputvars):
@@ -62,6 +63,22 @@ class Section(ttk.Frame):
                 inputvar.toggle_linkedvars() # make sure that if a section is disabled by default, its widgets are disabled
         self.rowconfigure(i-1,weight=1)
         self.columnconfigure(0,weight=1)
+
+    def load_from_workspace(self, matlabeng):
+        ''' Load all inputvar values from MATLAB workspace. '''
+        matlabeng.eval("warning('off','all');", nargout=0)
+        for inputvar in self.inputvars:
+            try:
+                matlabeng.eval('temp = ' + inputvar.structname + '.' + inputvar.name + ';', nargout=0)
+                if isinstance(inputvar, GasVar): # if a Gas object, have to convert to struct first!
+                    matlabeng.eval('temp= struct(temp);', nargout=0)
+                inputvar.put(matlabeng.workspace['temp'])
+            except:
+                print("Failed to load input " + inputvar.structname + '.'+ inputvar.name + " from MATLAB workspace.")
+        matlabeng.eval("warning('on','all');",nargout=0)
+        matlabeng.clear('temp', nargout=0)
+
+
 
     def restoredefaults(self):
         ''' Restore every inputvar in section to its default value. '''

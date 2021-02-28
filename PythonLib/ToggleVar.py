@@ -23,7 +23,10 @@ class ToggleVar(InputVar):
 
     def put(self, val):
         ''' Set current value of self.var. '''
+        holdstate = self.widget['state']
+        self.widget['state'] = 'normal'
         self.var.set(val)
+        self.widget['state'] = holdstate
 
     def get_type(self):
         ''' Return the base type of this input var. '''

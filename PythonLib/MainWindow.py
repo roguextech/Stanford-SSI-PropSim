@@ -20,7 +20,6 @@ import matlab.engine
 # - put save button at bottom
 #
 # - load a .mat file to fill the boxes and plots (would it be possible to also save the ouput to a long MATLAB string in that workspace?)
-# - split out the "output on" shit in Performance code to allow users of this function to determine whether they want to output RasAero data
 
 # Items that a function's page has:
 # Function name: a string corresponding to the name of the MATLAB function to be run (normally PerformanceCode or DesignLiquid)
@@ -34,19 +33,6 @@ import matlab.engine
 # Plot names: name of plots added after running, with their base unit
 # Result struct name: the name of the struct into which all results are output
 # Results: each has a name, unit, and an associated plot name(s) (None if not plotted); by default, all are assumed to belong to the 'ans' struct
-
-# Basic function:
-# - On start-up, user selects which function they want to run by clicking on the desired tab at the top of the page
-#       - bind tab change so that it also switches which variables we're accessing
-# - User can hover over entry labels to see descriptions of what that variable is, the unit, etc.
-#       - if users input <some-value> [<unit>], the value will be converted to the appropriate unit
-#       - if users input <some-value>, the value will be assumed to be in the variable's base unit
-# - User presses Run at bottom of LHS
-# - On Run, all entry inputs are validated for unit and using the variables validation function. If unsuccessful, prints an error message and turns that entry red (entries should return to normal color on entry).
-# - After successful validation, a "CreateMatlabWorkspace" function is called, which runs through all the input variables, adding them to a Matlab workspace
-# - Once the workspace has been created, the Function's associated anonymous function is run
-# - After a run returns, plots are updated based on the result struct
-
 
 from .InputPane import InputPane
 # from .OutputPane import OutputPane
@@ -63,6 +49,7 @@ simPages = [SimulateLiquid, SimulateHybrid, DesignLiquid]
 
 # TODO: add regularly-timed background process that checks for updates to inputPane.getsimPage().ans and passes to the plot pane
 # to make sure that all variables within the ans struct are always available for plotting
+# - disable cmd pane if a simPage is being run (needs to pass through mainwindow)
 
 class MainWindow(tk.Tk):
     def __init__(self):

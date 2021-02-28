@@ -226,3 +226,22 @@ class SimPage(ttk.Frame):
             return False
 
         return True
+    
+    def loadworkspace(self):
+        ''' Prompts a user for a filename to load into the matlab workspace. Once loaded, updates all sections' inputvars to reflect
+            the status in the workspace. '''
+        filepicked = dialog.askopenfilename(title='Load Simulation Workspace', defaultextension = '.mat', filetypes = [('.MAT files', '.mat')])
+        if filepicked:
+            if self.name.casefold() not in filepicked.casefold():
+                if not msg.askyesno(title = "Confirm selection...",message = "This .MAT file does not contain the name of this simulation page (" + self.name + '). \n Do you wish to continue?'):
+                    return
+
+            self.matlabeng.eval("load('"+filepicked+"');", nargout = 0) # load the workspace
+            if self.matlabeng.exist('ans', 'var') == 1: # if a solution exists in the loaded workspace
+                newans = self.matlabeng.workspace['ans']
+                if self.ans is None or self.ans != newans: # if there wasn't a solution before or if solution is not what already was
+                    self.ans = newans # load new solution
+                    self.saved = False # loading a solution counts as a run
+
+            for section in self.sections:
+                section.load_from_workspace(self.matlabeng) # update all inputvars to match MAT file
