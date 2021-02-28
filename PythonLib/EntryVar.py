@@ -10,8 +10,10 @@
 
 import tkinter as tk
 import tkinter.ttk as ttk
+
 from .InputVar import InputVar
 from .units import units
+
 
 class EntryVar(InputVar):
     def __init__(self, name, defaultval, baseunit, structname = None, description = ''):
@@ -55,18 +57,26 @@ class EntryVar(InputVar):
         splitstr = self.get()
         splitstr = splitstr.strip('] ') # remove closing brace and leading/trailing whitespace
         splitstr = splitstr.split('[') # split into a list
+
+        if len(splitstr) > 2: # protect against too many arguments before using eval()
+            self.set_err()
+            return "Error: Variable " + self.name + " has an unparseable input: " + self.get()
+
         try:
-            self.numeric_val = float(splitstr[0].strip())
+            parse_this = splitstr[0].strip()
+            if '__' in parse_this or 'lambda' in parse_this or "=" in parse_this:
+                raise TypeError
+            self.numeric_val = float(eval(parse_this,{"__builtins__":None},{})) # use eval to parse input for numeric expressions, protecting against harmful input
         except:
             self.set_err()
-            return "Error: Variable " + self.name + " has a non-float value: " + self.splitstr[0]
-        if len(splitstr) > 1: # if a unit was included
+            return "Error: Variable " + self.name + " has an unparseable value: " + self.splitstr[0]
+        if len(splitstr) > 1 : # if a unit was included
             if units.validate_units(splitstr[1].strip(), self.baseunit):
                 self.parsed_unit = splitstr[1]
                 return True
             else:
                 self.set_err()
-                return "Error: Variable " + self.name + " has a unit incompatible with the base unit. \n" + "\t Base unit is [" + self.baseunit + "] and compatible units are: " + ', '.join(units.get_compatible_units(self.baseunit))
+                return "Error: Variable " + self.name + " has a unit incompatible with the base unit. \n" + "\t Base unit is [" + self.baseunit + "] and compatible units are: " + ', '.join(units.get_compatible_units(self.baseunit))          
         else: 
             self.parsed_unit = self.baseunit # if no unit was provided, assume the base unit
         return True # if you got here, you're good

@@ -61,6 +61,9 @@ from .SimulateHybridPage import SimulateHybrid
 from .DesignLiquidPage import DesignLiquid
 simPages = [SimulateLiquid, SimulateHybrid, DesignLiquid]
 
+# TODO: add regularly-timed background process that checks for updates to inputPane.getsimPage().ans and passes to the plot pane
+# to make sure that all variables within the ans struct are always available for plotting
+
 class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__() #use inherited constructor for tk.Tk

@@ -7,6 +7,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from io import StringIO
+import threading
 
 class CmdPane(ttk.Frame):
     def __init__(self, parent, matlabeng):
@@ -39,9 +40,14 @@ class CmdPane(ttk.Frame):
             print('clc')
             return
         print('>> '+myline) # print to GUI
+        cmd_thread = threading.Thread(target = lambda: self._cmd_thread(myline.strip()), name = 'cmd_thread')
+        cmd_thread.start()
+    
+    def _cmd_thread(self, cmd):
         output = StringIO()
         try:
-            self.matlabeng.eval(myline, nargout = 0, stdout = output)
+            self.entry.unbind("<Return>") # prevent additional commands from being sent
+            self.matlabeng.eval(cmd, nargout = 0, stdout = output)
         finally:
             results = output.getvalue()
             if results == None or results == '':
@@ -49,3 +55,4 @@ class CmdPane(ttk.Frame):
             else:
                 print(results) # print stringIO stuff
             output.close()
+            self.entry.bind("<Return>", lambda event: self.on_return() ) # re-bind enter key
