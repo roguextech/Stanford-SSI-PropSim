@@ -57,7 +57,7 @@ class InputVar():
         raise NotImplementedError()
 
     def maketooltip(self, tip_widget):
-        ''' Create a tooltip that is linked to a tip_widget. '''
+        ''' Create a tooltip that is linked to a tip_widget. makewidget() must be called first! '''
         if self.get_type().lower() not in ('gas','boolean','file'):
             descrip_str = self.name + '       ( unit: [' + self.get_type() + '] )\n'
         else:

@@ -20,3 +20,8 @@ class MenuBar(tk.Menu):
         filemenu.add_command(label="Save as...", command = mainwindow.inputPane.saveas_sim)
         #filemenu.add_command(label="Load MAT File", command = lambda: pas)
         self.add_cascade(label="File", menu=filemenu)
+
+        # Edit menu
+        # --> Restore defaults: returns all variables to their default values
+        editmenu = tk.Menu(self, tearoff=0)
+        editmenu.add_command(label='Restore defaults...', command = mainwindow.inputPane.restoredefaults)

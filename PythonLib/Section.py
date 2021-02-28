@@ -21,11 +21,13 @@ class Section(ttk.Frame):
     def __init__(self, name, inputvars):
         self.name = name
         self.inputvars = inputvars
+        self.modified = True # tracks whether inputvars in this section have been modified since last build (initialy true, since no build has occured)
 
     def build(self, matlabeng):
         ''' Build all inputvars in the MATLAB workspace. '''
         for var in self.inputvars:
             var.build(matlabeng)
+        self.modified = False # haven't been modified since last build!
     
     def validate(self):
         ''' Compile error codes from the validation of the constituent InputVars. '''
@@ -39,24 +41,33 @@ class Section(ttk.Frame):
     def makewidget(self, parent):
         ''' Make tk widgets of input vars, and construct the section. '''
         super().__init__(parent) # initialize self as ttk.Frame
+
         sec_lab = ttk.Label(self, text = self.name, style = 'SectionHeader.TLabel')
         sec_lab.grid(row = 0, column = 0, sticky = 'nsew')
         i = 1
-        for var in self.inputvars:
+        for inputvar in self.inputvars:
             subframe = ttk.Frame(self, borderwidth=5, relief = 'groove')
             subframe.grid(row=i,column=0,sticky='nsew',padx=(40,10),pady=(0,0))
-            var.makewidget(subframe) # initialize the widget of this inputvar, using the section frame as the parent
-            lab = ttk.Label(subframe, text = var.name+': \t')
+            inputvar.makewidget(subframe) # initialize the widget of this inputvar, using the section frame as the parent
+            lab = ttk.Label(subframe, text = inputvar.name+': \t')
             lab.grid(row = 0, column = 0, sticky = 'nsew')
-            var.maketooltip(lab) # connect a tooltip to the label to the left of the inputvar
-            var.widget.grid(row = 0, column = 1, sticky = 'nsew')
+            inputvar.maketooltip(lab) # connect a tooltip to the label to the left of the inputvar
+            inputvar.var.trace_add("write", lambda *a: self.make_modified()) # connect changes to the state of this variable to the make_modified function
+            inputvar.widget.grid(row = 0, column = 1, sticky = 'nsew')
             subframe.columnconfigure(0,weight=1)
             subframe.rowconfigure(0,weight=1)
             i = i + 1
-        for var in self.inputvars:
-            if isinstance(var, ToggleVar):
-                var.toggle_linkedvars() # make sure that if a section is disabled by default, its widgets are disabled
+        for inputvar in self.inputvars:
+            if isinstance(inputvar, ToggleVar):
+                inputvar.toggle_linkedvars() # make sure that if a section is disabled by default, its widgets are disabled
         self.rowconfigure(i-1,weight=1)
         self.columnconfigure(0,weight=1)
+
+    def restoredefaults(self):
+        ''' Restore every inputvar in section to its default value. '''
+        for var in self.inputvars:
+            var.put(var.default) # set all vars to their default value
         
+    def make_modified(self):
+        self.modified = True # if an inputvar is modified, switch to True
         

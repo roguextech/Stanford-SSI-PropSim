@@ -33,7 +33,7 @@ import matlab.engine
 #                       - need to figure out how to build a struct from Python into a MATLAB workspace (best case - convert python dict to MATLAB struct)
 # Plot names: name of plots added after running, with their base unit
 # Result struct name: the name of the struct into which all results are output
-# Results: each has a name, unit, value, and an associated plot name(s) (None if not plotted); by default, all are assumed to belong to the 'ans' struct
+# Results: each has a name, unit, and an associated plot name(s) (None if not plotted); by default, all are assumed to belong to the 'ans' struct
 
 # Basic function:
 # - On start-up, user selects which function they want to run by clicking on the desired tab at the top of the page
@@ -51,23 +51,22 @@ import matlab.engine
 from .InputPane import InputPane
 # from .OutputPane import OutputPane
 # from .PlotPane import PlotPane
+from .CmdPane import CmdPane
 from .PrintRedirector import PrintRedirector
 from .Menubar import MenuBar
 
 # IMPORT SIMPAGES and then add them to the simPages list to have them show up on the application
 from .SimulateLiquidPage import SimulateLiquid
-simPages = [SimulateLiquid]
-#simPages = [SimulateLiquidPage, SimulateHybridPage, DesignLiquidPage]
-
-## TODO: 
-#   - Allow users to modify the "options" struct to change the integration time and time step
+from .SimulateHybridPage import SimulateHybrid
+from .DesignLiquidPage import DesignLiquid
+simPages = [SimulateLiquid, SimulateHybrid, DesignLiquid]
 
 class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__() #use inherited constructor for tk.Tk
 
         # Build the primary frame that contains all other items.
-        self.mainframe = ttk.PanedWindow(self, orient = 'horizontal')
+        self.mainframe = ttk.Frame(self)
         self.mainframe.pack(fill=tk.BOTH, expand=1) 
         self.state('zoomed')
         self.title('PropSim - Stanford Student Space Initiative')
@@ -78,28 +77,38 @@ class MainWindow(tk.Tk):
 
         # Create styles
         self.style = ttk.Style()
+        self.style.theme_use('clam')
         self.style.configure('EntryVal.TEntry',font=('TkDefaultFont', 8), fg = 'black', bg = 'white')
         self.style.map('EntryVal.TEntry', background = [('!invalid','white'),('invalid', '#f59a9a' )])
         self.style.configure('SectionHeader.TLabel', font = ('TkDefaultFont', 10,'bold'))
 
         # Bind close event to stop animation updating if the window is closed
-        self.bind("<Destroy>", lambda event: self.close())
+        self.protocol("WM_DELETE_WINDOW", self.close)
 
         # Create Constituent Widgets
         self.inputPane = InputPane(self.mainframe, self, self.eng, simPages)
-        self.rightPane = tk.PanedWindow(self, orient = 'vertical')
-        self.printRedirector = PrintRedirector(self)
-        self.rightPane.add(self.printRedirector.widget)
+        self.rightPane = tk.PanedWindow(self.mainframe, orient = 'vertical')
+        #self.plotPane = PlotPane(self)
+        self.printRedirector = PrintRedirector(self.mainframe)
+        self.cmdPane = CmdPane(self.mainframe, self.eng)
+        self.rightPane.add(self.printRedirector)
         self.menubar = MenuBar(self)
 
         # Pack Constituent Widgets
         self.config(menu = self.menubar) # set menubar
-        self.mainframe.add(self.inputPane)
-        self.mainframe.add(self.rightPane)
+        self.inputPane.grid(row=0,column=0, rowspan=2,sticky='nsew')
+        self.rightPane.grid(row=0,column=1, sticky='nsew')
+        self.cmdPane.grid(row=1, column=1, sticky='nsew')
+        self.mainframe.rowconfigure(0, weight = 1)
+        self.mainframe.columnconfigure(1, weight = 1)
+
+    def update_plot(self, resultvars):
+        ''' Update plotPane to use most recent resultvars. '''
+        self.plotPane.update_plot(resultvars)
 
     def close(self):
-        #self.inputPane.promptsave_sim() # prompt for save before closing window
-        pass
+        if self.inputPane.promptsave_sim(): # prompt for save before closing window
+            self.destroy()
 
     def run(self):
         ''' Starts the application loop, including the error logger and print redirector. '''

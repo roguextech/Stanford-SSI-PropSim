@@ -35,7 +35,7 @@ class EntryVar(InputVar):
     def build(self, matlabeng):
         ''' Build this variable in the MATLAB engine's workspace. '''
         if self.numeric_val is None:
-            myval = 0 # if entry is disabled, just plug in a dummy value (won't matter)
+            myval = self.defaultval.split('[')[0].strip() # if entry is disabled, plug in a default value (won't matter except for the options struct)
         else:
             myval = units.convert(self.numeric_val, self.parsed_unit, self.baseunit) # convert to baseunit
         matlabeng.eval(self.structname + '.' + self.name + '=' + str(myval) + ' ;', nargout = 0) # use eval to make struct variable in MATLAB workspace

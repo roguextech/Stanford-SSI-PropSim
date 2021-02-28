@@ -16,25 +16,26 @@ from io import StringIO as StringIO
 
 NUM_LINES = 150
 
-class PrintRedirector(StringIO):
+class PrintRedirector(stxt.ScrolledText):
     def __init__(self, master):
-        super().__init__()
-        self.widget = stxt.ScrolledText(master=master, wrap='word', font = ('TkDefaultFont', 9), foreground='white', background='black',relief='sunken',height=1)
+        super().__init__(master=master, wrap='word', font = ('Courier New',11), foreground='black', background='white',relief='sunken',height=1)
 
     def check_range(self):
-        if float(self.widget.index("end-1c")) == NUM_LINES+2:
-            self.widget.delete("1.0", "1.end + 1 char")
+        if float(self.index("end-1c")) == NUM_LINES+2:
+            self.delete("1.0", "1.end + 1 char")
 
     def write(self, msg):
-            msg += self.getvalue()
-            self.widget['state'] = 'normal'
-            self.widget.insert(tk.END, msg)
-            self.widget.see(tk.END)
+        self['state'] = 'normal'
+        if msg == 'clc' or isinstance(msg, int):
+            self.delete("1.0", "end+1c") # clear on these cues
+        else:
+            self.insert(tk.END, msg)
+            self.see(tk.END)
             self.check_range()
-            self.widget['state'] = 'disabled'
+        self['state'] = 'disabled'
     
     def flush(self):
-        pass
+        print()
 
     def __enter__(self):
         return self
