@@ -45,6 +45,17 @@ metric_mult = {
     "n": 1E-9
 }
 
+''' The preferred unit for a given type of base unit. If a base unit doesn't have a preferred definition here, uses base unit as preferred.'''
+unit_preferred = {
+    "m" : "in",
+    "L" : "L",
+    "N" : "lbf",
+    "s" : "s",
+    "g" : "lb",
+    "Pa": "psi",
+    "K" : "K"
+}
+
 class Units():
     def __init__(self):
         pass
@@ -55,31 +66,58 @@ class Units():
         for key in unit_lib:
             unit_list += list(unit_lib[key].keys())
         return unit_list
+    
+    def get_preferred_unit(self, unit):
+        ''' Returns the preferred unit compatible with unit. '''
+        comp_units = self.get_compatible_units(unit)
+        for my_unit in comp_units:
+            splitstr = my_unit.split('^')
+            my_unit_no_power = splitstr[0]
+            power = 1
+            if len(splitstr) >1:
+                power = splitstr[1]
+            if my_unit_no_power in unit_lib.keys():
+                return_unit = my_unit
+                try:
+                    return_unit =  unit_preferred[my_unit]
+                except KeyError:
+                    try:
+                        return_unit =  unit_preferred[my_unit_no_power]+'^'+power 
+                    except:
+                        pass
+                return return_unit
 
-    def get_compatible_units(self, unit):
+    def get_compatible_units(self, unit, power = 1):
         ''' Returns a list of units compatible with the given unit. 
             The returned list will contain the given unit, unless no other compatible units are found.
         '''  
-        powercheck = unit.split('^') # check to see if unit is taken to a power
-        unit = powercheck[0]
-        power = None
-        if len(powercheck) > 1:
-            try:
-                power = int(powercheck[1])
-            except:
-                return [] # if power is invalid, return empty string
-
-        my_base_unit = None
-        # Search for the from_unit in the unit lib
+        my_base_unit = None 
+        # Search for the unit in the unit lib
         for base_unit in unit_lib:
             for each_unit in unit_lib[base_unit]:
                 if unit.casefold() == each_unit.casefold() :
                     my_base_unit = base_unit
                     break
-        if my_base_unit is None: # If you don't find a base unit, return empty list
+        
+        if my_base_unit == None: # if didn't find it in the lib, try removing a power
+            powercheck = unit.split('^') # check to see if unit is taken to a power
+            unit = powercheck[0]
+            if len(powercheck) > 1:
+                try:
+                    return self.get_compatible_units(unit, int(powercheck[1])) # pass w power arg
+                except:
+                    return [] # if power is invalid, return empty string
+
+        
+        if my_base_unit is None: # check for metrix prefix
+            for prefix in metric_mult:
+                if unit[:len(prefix)].casefold() == prefix.casefold():
+                    return self.get_compatible_units(unit[len(prefix):], power) 
+
+        if my_base_unit is None: # If you still don't find a base unit, return empty list
             return []
         else:
-            if power is None:
+            if power == 1:
                 return unit_lib[my_base_unit].keys() # return list of keys for that base unit
             else:
                 return [key + '^' + str(power) for key in unit_lib[my_base_unit].keys() ] # return list of key with power modifier
@@ -92,7 +130,7 @@ class Units():
         except KeyError:
             return False
 
-    def convert(self, value, from_unit, to_unit):
+    def convert(self, value, from_unit, to_unit, power = 1):
         ''' Returns the conversion of a value in one unit to a compatible unit.
             value: the value to be converted (can also be a np array of values)
             from_unit: the units of value
@@ -100,24 +138,6 @@ class Units():
 
             Raises a KeyError if the units passed are incompatible or invalid.
         '''
-        powercheck_from = from_unit.split('^') # check to see if unit is taken to a power
-        from_unit = powercheck_from[0]
-        powercheck_to = to_unit.split('^')
-        to_unit = powercheck_to[0]
-
-        my_power = 1
-        if len(powercheck_from) == len(powercheck_to) and len(powercheck_from) > 1 :
-            try:
-                if int(powercheck_from[1]) != int(powercheck_to[1]):
-                    raise KeyError # if powers arent equal, return Key Error
-                else:
-                    my_power = int(powercheck_from[1]) # collect the power of the unit
-            except:
-                raise KeyError
-        elif len(powercheck_from) != len(powercheck_to):
-            from_unit = '^'.join(powercheck_from) # if they arent both to a power, return the values to their initial state, and check them raw against the unit_lib (checking for L and m^3. for example)
-            to_unit = '^'.join(powercheck_to)
-
         my_base_unit = None
         # Search for the from_unit in the unit lib
         for base_unit in unit_lib:
@@ -128,13 +148,33 @@ class Units():
                     break
             if my_base_unit is not None:
                 break
+        
+        # if didn't find it, check to see if the units are to powers
+        if my_base_unit is None:
+            powercheck_from = from_unit.split('^') # check to see if unit is taken to a power
+            from_unit = powercheck_from[0]
+            powercheck_to = to_unit.split('^')
+            to_unit = powercheck_to[0]
+
+            if len(powercheck_from) == len(powercheck_to) and len(powercheck_from) > 1 :
+                try:
+                    if int(powercheck_from[1]) != int(powercheck_to[1]):
+                        raise KeyError # if powers arent equal, return Key Error
+                    else:
+                        return self.convert(value, from_unit, to_unit, int(powercheck_from[1])) # collect the power of the unit
+                except:
+                    raise KeyError
+            elif len(powercheck_from) != len(powercheck_to):
+                from_unit = '^'.join(powercheck_from) # if they arent both to a power, return the values to their initial state, and check them raw against the unit_lib (checking for L and m^3. for example)
+                to_unit = '^'.join(powercheck_to)
+
         # If didn't find it, from_unit is a metric multiplier of the base unit. 
         # If so, adjust the value to get it in its base unit equivalent (e.g. take the km value to m)
         if my_base_unit is None:
             for prefix in metric_mult:
                 if from_unit[:len(prefix)].casefold() == prefix.casefold():
-                    value = np.multiply(value, np.power( metric_mult[prefix] , my_power) )
-                    return self.convert(value, from_unit[len(prefix):]+'^'+str(my_power), to_unit+'^'+str(my_power)) # having converted to a base unit and multiplied valued, recurse
+                    value = np.multiply(value, np.power( metric_mult[prefix] , power) )
+                    return self.convert(value, from_unit[len(prefix):]+'^'+str(power), to_unit+'^'+str(power)) # having converted to a base unit and multiplied valued, recurse
         # Do the same as above for the to_unit, defining a multiplier thats applied on the value at end if to_unit is 
             # a metric multiplier of a base unit
         mult = 1 # by default, multiplier is 1
@@ -146,7 +186,7 @@ class Units():
         if flag is False: # If didn't find it, must be a metric multiplier of a base unit
                 for prefix in metric_mult:
                     if to_unit[:len(prefix)].casefold() == prefix.casefold():
-                        mult = 1 / np.power( metric_mult[prefix] , my_power)
+                        mult = 1 / np.power( metric_mult[prefix] , power)
                         to_unit = to_unit[len(prefix):]
                         for unit in unit_lib[my_base_unit]: # if found the metric multiplier, find the key that is the case-insensitive match
                             if unit.casefold() == to_unit.casefold():
@@ -154,7 +194,7 @@ class Units():
                                 break
                         break
         # Convert to base unit, checking to see if an offset exists 
-        value = np.multiply(value, np.power(unit_lib[my_base_unit][from_unit], my_power) ) # value (from_unit) * # (base_unit/from_unit) = new value (base_unit)
+        value = np.multiply(value, np.power(unit_lib[my_base_unit][from_unit], power) ) # value (from_unit) * # (base_unit/from_unit) = new value (base_unit)
         try:
             value = np.add(value, unit_offset[my_base_unit][from_unit])
         except KeyError:
@@ -164,7 +204,7 @@ class Units():
             value = np.subtract(value, unit_offset[my_base_unit][to_unit])
         except KeyError:
             pass # KeyError indicates no offset exists for this unit pair
-        value = np.divide(value, np.power(unit_lib[my_base_unit][to_unit], my_power))
+        value = np.divide(value, np.power(unit_lib[my_base_unit][to_unit], power))
         
         return np.multiply(value, mult) # apply the multiplier and return
 

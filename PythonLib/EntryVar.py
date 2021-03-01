@@ -28,6 +28,14 @@ class EntryVar(InputVar):
 
     def put(self, val):
         ''' Set current value of self.var. '''
+        if not isinstance(val, str):
+            val = str(val)
+        splitstr = val.strip('] ')
+        splitstr = splitstr.split('[')
+        if len(splitstr) == 1: # if no unit, convert to preferred unit from base unit
+            pref_unit = units.get_preferred_unit(self.baseunit)
+            val = str( round( units.convert(float(splitstr[0]), self.baseunit, pref_unit), 6 ) ) + ' [' + pref_unit + ']'
+
         holdstate = self.widget['state']
         self.widget['state'] = 'normal'
         self.var.set(val)

@@ -78,12 +78,10 @@ class Section(ttk.Frame):
         matlabeng.eval("warning('on','all');",nargout=0)
         matlabeng.clear('temp', nargout=0)
 
-
-
     def restoredefaults(self):
         ''' Restore every inputvar in section to its default value. '''
         for var in self.inputvars:
-            var.put(var.default) # set all vars to their default value
+            var.put(var.defaultval) # set all vars to their default value
         
     def make_modified(self):
         self.modified = True # if an inputvar is modified, switch to True
