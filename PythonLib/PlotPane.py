@@ -1,66 +1,101 @@
 '''
     PlotPane:
 
-    This pane is a ttk.Notebook with a matplotlib plot on each page. When a user calls "Run", these plots are
-    updated with solution data based on the plot names and ResultVars used to initialize that page.
-
-    Two plots are available by default. Users can select up to three variables from the ResultVars to plot simulataneously.
-
-    Users may also select a unit to which the resultvar is converted. All variables are plotted vs. time.
+    This pane is a ttk.Notebook with a matplotlib plot on each page. SimPages plot() function is passed this object,
+    and can add tabs to the notebook to make additional figures.
 '''
 
 ## TODO: 
 # Add ability to adjust title (x-axis is time, sec, y-axis is units of data selected)
-# Beneath each plot is a checkbutton menu; if nothing is selected, all resultvars are available for plotting
+# Beneath each plot is a checkbutton menu; if nothing is selected, all resultvars and array-type members of ans struct are available for plotting
 # and when extended, users can hover over the name of the variable to see a ToolTip description of that variable.
 #
+# Need to add a function that keeps checking for more additions to the ans struct, in case added by the user
 
-# Tie all menu options' checkboxes to the same function, which increments the number of 
+# Tie all menu options' checkboxes to the same function, which increments the number of variables plotted. Take special action on  
 
 import tkinter as tk
 import tkinter.ttk as ttk
 import numpy as np
 import matplotlib.figure as figure
 import matplotlib.style as plotstyle
+import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from matplotlib.backend_bases import key_press_handler
+import mplcursors
 
 from .units import units
 from .ToolTip import ToolTip
 
-class PlotPane(ttk.Frame):
+class PlotPane(ttk.Notebook):
     def __init__(self, parent, matlabeng):
         super().__init__(parent)
-        self.matlabeng = matlabeng  
-        self.num_vars_plotted = 0 # initially, no vars are plotted 
-        self.base_unit
 
-        self.ans = None # current ans being plotted
+        self.current_tab = 0
+        self.figs = []
+        self.canvases = []
+        self.toolbars= []
 
-    def set_title(self, new_title):
-        ''' Set a new title for the figure. '''
-        self.fig.set_title(new_title)
-        self.fig.show()
+        ## Add a default frame that just contains a message describing what will be here eventually
+        fig = self.add_page("Welcome")
 
-    def update_plot(self, new_resultvars, new_ans):
-        ''' Take a new answer and update plotting as possible. '''
-        pass
+    def set_page(self, index = 0):
+        ''' Set which page to look at. '''
+        self.select(index)
+    
+    def add_page(self, page_title):
+        ''' Make a new plotting page. Returns the figure.Figure() object on that page.'''
+        frame = ttk.Frame(self) # make frame to hold canvas
+        self.figs.append(figure.Figure())
+        self.canvases.append(FigureCanvasTkAgg(self.figs[-1], master = frame))
+        self.canvases[-1].get_tk_widget().pack(expand=True, fill=tk.BOTH)
+        self.toolbars.append( NavigationToolbar2Tk(self.canvases[-1], frame) )
+        self.toolbars[-1].update()
+        self.add(frame, text = page_title)
 
-    def on_checkbox(self, index):
-        ''' Whenever a checkbox is clicked on. Check status and pass to appropriate function. '''
-        pass
+        return self.figs[-1]
 
-    def on_deselect(self, index):
-        ''' If a user deselects a menubutton. '''
-        pass
+    def draw(self, canvas_index = None):
+        ''' Draw the current (or indicated) canvas. '''
 
-    def on_last_deselect(self, index):
-        ''' When user deselects the last checked object in the list - clears the unit picker and disables it. '''
-        pass
+        if not canvas_index:
+            canvas_index = self.current_tab
 
-    def on_select(self, index):
-        ''' When user makes a new selection. '''
-        pass
+        # self.canvases[canvas_index].draw()
+        ax = self.figs[canvas_index].axes
+        mplcursors.cursor(ax, hover=2) # set plots so that hovering over generates a pop-up annotation, but goes away when mouse leaves
+        on_key_press = lambda event, canvas=self.canvases[canvas_index], tbar = self.toolbars[canvas_index]: key_press_handler(event, canvas, tbar)
+        self.canvases[canvas_index].mpl_connect("key_press_event", on_key_press)
+    
+    def draw_all(self):
+        ''' Draw all canvases. '''
+        for i in self.tabs():
+            i = self.index(i) # get index number
+            self.draw(i)
 
-    def on_first_selection(self, index):
-        ''' If selection made is the first selection. Enables the unit picker and updates to include compatible units. ''' 
-        pass
+    def gcf(self):
+        ''' Return the current (or indicated) canvas. '''
+        return self.figs[self.current_tab]
+
+    def clear_fig(self, fig_index = None):
+        ''' Clear the current (or indicated) figure. '''
+        if fig_index:
+            self.figs[fig_index].clear()
+        else:
+            self.figs[self.current_tab].clear()
+
+    def clear(self):
+        ''' Clear all tabs and associated plots. '''
+        for i in self.tabs():
+            i = self.index(i) # get index number
+            plt.close(self.figs[i])
+            self.canvases[i].get_tk_widget().destroy() # delete canvas associated with plot
+
+        for item in self.winfo_children():
+                item.destroy()
+        self.canvases = []
+        self.figs = []
+        self.toolbars = []
+
+
+

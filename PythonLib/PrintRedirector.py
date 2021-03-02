@@ -19,6 +19,7 @@ NUM_LINES = 150
 class PrintRedirector(stxt.ScrolledText):
     def __init__(self, master):
         super().__init__(master=master, wrap='word', font = ('Courier New',11), foreground='black', background='white',relief='sunken',height=1)
+        self['state'] = 'disabled'
 
     def check_range(self):
         if float(self.index("end-1c")) == NUM_LINES+2:

@@ -16,6 +16,7 @@ class InputPane(ttk.Notebook):
         super().__init__(mainframe)
         self.mainframe = mainframe
         self.mainwindow = mainwindow
+        self.plotPane = mainwindow.plotPane
         self.matlabeng = matlabeng
         self.simpages = simpages
 
@@ -32,6 +33,10 @@ class InputPane(ttk.Notebook):
             return self.simpages[self.curr_tab].promptforsave()
         else:
             return True # if solution has already been saved or doesn't exist, don't bother prompting
+
+    def plot_sim(self):
+        self.plotPane.clear() # clear old plots
+        self.simpages[self.curr_tab]._plot(self.plotPane)
 
     def save_sim(self):
         self.simpages[self.curr_tab].saveworkspace()

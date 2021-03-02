@@ -163,7 +163,7 @@ end
 
 if output_on
     PrintResults(inputs);
-    PerformanceCode(inputs, mode, test_data);
+    inputs.perf_results = PerformanceCode(inputs, mode, test_data);
 end
 
 end

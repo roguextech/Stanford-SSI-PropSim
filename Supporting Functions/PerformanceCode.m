@@ -370,7 +370,11 @@ function [test_time, pft, pom, pot, we, ft, pcc] = LoadDataVars(filename, t_offs
     we = 0;
     ft = 0;
     pcc = 0;
-    load(['.\Test Data\' filename])
+    if contains(filename, '/') || contains(filename, '\')
+        load(filename)
+    else
+        load(['.\Test Data\' filename])
+    end
     test_time = test_time + t_offset;
     if length(test_time) == 1
         error('Variable ''test_time'' not present in imported data.\n');

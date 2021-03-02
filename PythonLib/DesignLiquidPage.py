@@ -16,7 +16,7 @@ goal_of = EntryVar('OF','8.0','none','goal','The desired average OF ratio.')
 goal_impulse = EntryVar('total_impulse','18 [N]','N','goal','The desired total impulse (times seconds).')
 min_fuel_dp = EntryVar('min_fuel_dp','0.25','none','goal','The minimum fuel injector dp as a decimal percentage [0,1] of tank pressure.')
 min_ox_dp = EntryVar('min_ox_dp','0.35','none','goal','The minimum fuel injector dp as a decimal percentage [0,1] of tank pressure.')
-ox_to_fuel_time = EntryVar('T_tank','1.0','none','goal','The ratio of ox flow time to fuel flow time.')
+ox_to_fuel_time = EntryVar('ox_to_fuel_time','1.0','none','goal','The ratio of ox flow time to fuel flow time.')
 Goal = Section('Goal', [max_thrust, goal_of, goal_impulse, min_fuel_dp, min_ox_dp, ox_to_fuel_time])
 
 # Design
@@ -87,11 +87,8 @@ Combustion = Section("Combustion", combvars)
 # Simulation
 T_amb = EntryVar('T_amb','280 [K]','K','initial_inputs','The ambient temperature.')
 P_amb = EntryVar('p_amb','12.5 [psi]','Pa','initial_inputs','The ambient pressure.')
-t_final = EntryVar('t_final','60 [s]', 's', 'options', 'The end time of the simulation.')
-delta_t = EntryVar('delta_t', '0.01 [s]', 's', 'options', 'Default time step used by the integrator.')
 drymass = EntryVar('mass_dry_rocket', '50 [lb]', 'kg', 'initial_inputs', 'The mass of the rocket when empty of propellant.')
-flight_on = ToggleVar('flight_on', 0,structname='mode',linkedvars=[drymass],description='Simulate rocket flight? (Generates additional pressure head due to accelaration.')
-Simulation = Section('Simulation', [T_amb, P_amb, t_final, delta_t , flight_on, drymass])
+Simulation = Section('Simulation', [T_amb, P_amb, drymass])
 
 ''' Create result variables for DesignLiquid. '''
 Fthrust = ResultVar('F_thrust', 'N', 'Generated thrust.')
@@ -145,7 +142,7 @@ DesLiqPlotnames =  {'Thrust':{'unit': 'N', 'resultvars': [Fthrust]},
 
 class DesignLiquidPage(SimPage):
     def __init__(self):
-        super().__init__('DesignLiquid', DesLiqSections, DesLiqInputStructs, DesLiqPlotnames, DesLiqResultVars)
+        super().__init__('DesignLiquid', DesLiqSections, DesLiqInputStructs)
 
     def prebuild(self, matlabeng):
         # Create Fuel and Ox Pressurant objects, load Combustion Data, and set options.output_on off (stops matlab from plotting)
@@ -159,5 +156,9 @@ class DesignLiquidPage(SimPage):
         input_struct_str = ','.join(self.inputstructs) + ', true' # input struct, also needs plot out indicator
         
         self.matlabeng.eval( 'DesignLiquid(' + input_struct_str + ') ;' , nargout = 0, stdout = stdout)
+
+    def plot(self, plotpane):
+        ''' Plotting! Uses SimulateLiquidPage's defined version with different arguments. '''
+        SimulateLiquidPage.plot(self, plotpane, is_design = True)
 
 DesignLiquid = DesignLiquidPage()

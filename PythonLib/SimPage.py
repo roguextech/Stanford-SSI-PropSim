@@ -4,8 +4,8 @@
     An abstract base class for creating new pages for new MATLAB functions (a la SimulateLiquid, SimulateHybrid, DesignLiquid). Define your page as
     a derived class with no inputs of this type in a separate file. Import that file into MainWindow.py and add the object to the simPages list.
 
-    NOTE: If you have Pressurant() objects or other MATLAB classdef objects, make sure to override the build file here and initialize those objects in the workspace
-    before calling super().build()
+    NOTE: If you have Pressurant() objects or other MATLAB classdef objects, declare them in prebuild() and initialize those objects in the workspace
+    before the standard build() command is called.
 ''' 
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -15,15 +15,11 @@ import threading
 from io import StringIO
 
 class SimPage(ttk.Frame):
-    def __init__(self, name, sections, inputstructs, plotnames, resultvars):
+    def __init__(self, name, sections, inputstructs):
         ''' Constructor used by derived classes, which will have no arguments passed into their constructor. '''
         self.name = name # name of the MATLAB function that should be run, also the title of the tab
         self.inputstructs = inputstructs # in-order list of variable names passed to the matlab engine
         self.sections = sections # list of Section objects, in order they should appear on the page
-        self.plotnames = plotnames # dict whose keys are names of defaults plots, with values being their base unit, i.e. {'Ox Tank Pressure':'Pa'}
-        self.resultvars = resultvars # list of ResultVar objects, describing the expected output of a run
-
-        self.simfunction = None # variable that will reference the anonymous simulation function after self.build is called
 
         self.savefilename = None # variable storing the savefilename for this MATLAB workspace
         self.saved = False # determines whether the solution has been saved since last run
@@ -35,8 +31,8 @@ class SimPage(ttk.Frame):
         self.canvas = None # canvas for scrolling
         self.scrollbar = None # scrollbar
 
-        self.matlabeng = None
-        self.inputPane = None
+        self.matlabeng = None # matlab engine
+        self.inputPane = None # input pane that holds all the simPages (parent of this object in tkinter)
 
     def prebuild(self, matlabeng):
         ''' Must be implemented by inheritor, even if just passes. If certain structs or variables need to
@@ -49,6 +45,16 @@ class SimPage(ttk.Frame):
             processed before running, do that here.
         '''
         raise NotImplementedError()
+
+    def run(self, stdout):
+        ''' Virtual function - derived classes will have this method called when the user presses Run on that page. 
+            Here, the sim page should build a workspace of variables, then call their own simfunction. '''
+        raise NotImplementedError()
+
+    def plot(self, plotpane):
+        ''' Virtual function - derived classes will have this method called after a run and whenever the user wants to update
+            plots. This function should manually build important plots from the data in self.ans. '''
+        raise NotImplementedError() 
 
     def build(self):
         ''' Function called on "Validate & Build" button press - validates, then prompts for save if ans has been generated.
@@ -91,13 +97,8 @@ class SimPage(ttk.Frame):
         for section in self.sections:
             section.restoredefaults()
 
-    def run(self, stdout):
-        ''' Virtual function - derived classes will have this method called when the user presses Run on that page. 
-            Here, the sim page should build a workspace of variables, then call their own simfunction. '''
-        raise NotImplementedError() # virtual method, not implemented
-
     def _run(self):
-        ''' Wrapper for above function to allow standard printout before running. '''
+        ''' Wrapper for above run() function to allow standard printout before running. '''
         for section in self.sections: # if any section has been modified since last build, re-build
             if section.modified:
                 self.build()
@@ -126,6 +127,15 @@ class SimPage(ttk.Frame):
         self.ans = self.matlabeng.workspace['ans'] # collect answer struct
         self.saved = False # the new answer has not been saved yet!
         print("Run complete.")
+        self.inputPane.plot_sim()
+
+    def _plot(self, plotpane):
+        ''' Wrapper for plot() function that checks to make sure a solution exists first. '''
+        if not self.ans: 
+            print("There is no solution to plot. Please run a simulation and try again. ")
+            return
+        self.plot(plotpane)
+        plotpane.draw_all()
 
     def makewidget(self, parent, matlabeng):
         ''' Uses the ttk.Frame constructor to initialize the frame, then builds and adds each section plus the Validate and Run buttons. '''

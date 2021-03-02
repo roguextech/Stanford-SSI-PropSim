@@ -10,6 +10,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import sys
 import matlab.engine
+import time
 
 # fun ideas:
 # - have a table that allows you to select which result variables are plotted on which plot name 
@@ -36,7 +37,7 @@ import matlab.engine
 
 from .InputPane import InputPane
 # from .OutputPane import OutputPane
-# from .PlotPane import PlotPane
+from .PlotPane import PlotPane
 from .CmdPane import CmdPane
 from .PrintRedirector import PrintRedirector
 from .Menubar import MenuBar
@@ -50,6 +51,7 @@ simPages = [SimulateLiquid, SimulateHybrid, DesignLiquid]
 # TODO: add regularly-timed background process that checks for updates to inputPane.getsimPage().ans and passes to the plot pane
 # to make sure that all variables within the ans struct are always available for plotting
 # - disable cmd pane if a simPage is being run (needs to pass through mainwindow)
+# - add error output re-direction from MATLAB to the printRedirector
 
 class MainWindow(tk.Tk):
     def __init__(self):
@@ -68,20 +70,22 @@ class MainWindow(tk.Tk):
         # Create styles
         self.style = ttk.Style()
         self.style.theme_use('clam')
-        self.style.configure('EntryVal.TEntry',font=('TkDefaultFont', 8), fg = 'black', bg = 'white')
+        self.style.configure('EntryVal.TEntry',font=('TkDefaultFont', 10), fg = 'black', bg = 'white')
         self.style.map('EntryVal.TEntry', background = [('!invalid','white'),('invalid', '#f59a9a' )])
-        self.style.configure('SectionHeader.TLabel', font = ('TkDefaultFont', 10,'bold'))
+        self.style.configure('SectionHeader.TLabel', font = ('TkDefaultFont', 12,'bold'))
 
         # Bind close event to stop animation updating if the window is closed
         self.protocol("WM_DELETE_WINDOW", self.close)
 
         # Create Constituent Widgets
-        self.inputPane = InputPane(self.mainframe, self, self.eng, simPages)
         self.rightPane = tk.PanedWindow(self.mainframe, orient = 'vertical')
-        #self.plotPane = PlotPane(self)
+        self.plotPane = PlotPane(self.rightPane, self.eng)
         self.printRedirector = PrintRedirector(self.mainframe)
         self.cmdPane = CmdPane(self.mainframe, self.eng)
+        self.rightPane.add(self.plotPane)
         self.rightPane.add(self.printRedirector)
+
+        self.inputPane = InputPane(self.mainframe, self, self.eng, simPages)
         self.menubar = MenuBar(self)
 
         # Pack Constituent Widgets
@@ -107,6 +111,9 @@ class MainWindow(tk.Tk):
         # error_logger = ErrorLogger(self, old_stderr, ERROR_LOG)
         #with error_logger as sys.stderr:
         with self.printRedirector as sys.stdout:
+            # Send a friendly message to get started
+            print("Welcome to PropSim! This is where all print-out is directed. You can also use the command line below to interact\n"
+                "with the active MATLAB session.")
             self.mainloop() # start GUI application running, on close will call kill() function above
         sys.stdout = old_stdout
         sys.stderr = old_stderr

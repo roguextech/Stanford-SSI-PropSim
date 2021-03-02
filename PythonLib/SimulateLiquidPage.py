@@ -1,5 +1,6 @@
 import sys
 from io import StringIO
+import numpy as np
 
 from .EntryVar import EntryVar
 from .ResultVar import ResultVar
@@ -8,6 +9,7 @@ from .MATVar import MATVar
 from .GasVar import GasVar
 from .Section import Section
 from .SimPage import SimPage
+from .units import units
 
 ''' Create input variables for SimulateLiquid and organize into Sections. '''
 # Ox section
@@ -141,21 +143,193 @@ SimLiqPlotnames =  {'Thrust':{'unit': 'N', 'resultvars': [Fthrust]},
 
 class SimulateLiquidPage(SimPage):
     def __init__(self):
-        super().__init__('SimulateLiquid', SimLiqSections, SimLiqInputStructs, SimLiqPlotnames, SimLiqResultVars)
+        super().__init__('SimulateLiquid', SimLiqSections, SimLiqInputStructs)
 
     def prebuild(self, matlabeng):
+        ''' This functions is run before anything is built in the workspace. '''
         # Create Fuel and Ox Pressurant objects, load Combustion Data, and set options.output_on off (stops matlab from plotting)
         matlabeng.eval("mode.type = 'liquid' ; ", nargout = 0)
         matlabeng.eval("inputs.fuel_pressurant = Pressurant('fuel') ;", nargout = 0)
         matlabeng.eval("inputs.ox_pressurant = Pressurant('oxidizer') ;", nargout = 0)
 
     def postbuild(self, matlabeng):
+        ''' This function is run after all input variables from the GUI are loaded into the MATLAB workspace. '''
         if comb_on.get(): # if doing combustion, need to actually load the data into a struct
             matlabeng.eval("inputs.comb_data = load(inputs.CombustionData) ; inputs.comb_data = inputs.comb_data.CombData ;", nargout = 0)
 
     def run(self, stdout):
+        ''' Handles running the actual simulation. '''
         input_struct_str = ','.join(self.inputstructs)
         
         self.matlabeng.eval( 'PerformanceCode(' + input_struct_str + ') ;' , nargout = 0, stdout = stdout)
+
+    def plot(self, plotpane, is_liquid = True, is_design = False):
+        ''' Handles plotting. Update here to change how output is graphed. '''
+        ''' NOTE: Assumes a test file is .MAT and has fields :
+            test_time: time of test in seconds
+            pcc: combustion chamber pressure in Pa
+            pft: fuel tank pressure in Pa
+            pot: ox tank pressure in Pa
+            pom: ox manifold pressure in Pa
+            we: weight from load cell in N
+            ft: thrust from thrust cell in N
+        '''
+        if is_design:
+            ans = self.ans['perf_results']
+        else:
+            ans = self.ans
+
+        combustion_on = comb_on.get() # plotting combustion data?
+        test_plots_on = test_plotting.get() # plotting test data?
+
+        test = {}
+        t_offset = None
+        if test_plots_on:
+            test_filename = testfile.get()
+            t_offset = self.matlabeng.workspace['test_data']['t_offset'] # get offset time in seconds
+            if test_filename.split('.')[-1].strip().casefold() == 'mat'.casefold() :
+                self.matlabeng.load(testfile.get(), nargout = 0) # load variables from testfile
+                test['time'] = self.matlabeng.workspace['test_time'] + t_offset # add offset time
+                test['p_cc'] = self.matlabeng.workspace['pcc']
+                test['p_fueltank'] = self.matlabeng.workspace['pft']
+                test['p_oxtank'] = self.matlabeng.workspace['pot']
+                test['p_oxmanifold'] = self.matlabeng.workspace['pom']
+                test['weight'] = self.matlabeng.workspace['we']
+                test['F_thrust'] = self.matlabeng.workspace['ft']
+        
+        ## THRUST ##
+        if combustion_on:
+            currfig = plotpane.add_page('Thrust')
+            currax = currfig.add_subplot(1,1,1)
+            currax.plot(ans['time'], units.convert(ans['F_thrust'], 'N', 'lbf'), label = 'Simulation')
+            currax.set_xlabel('time, sec')
+            currax.set_ylabel('Thrust, lbf')
+            if t_offset:
+                currax.plot(self.test['time'], units.convert(self.test['F_thrust'], 'N', 'lbf'), label = 'Measured')
+            currax.legend()
+        
+        ## PRESSURES ##
+        currfig = plotpane.add_page('Pressures')
+        if combustion_on:
+            currax = currfig.add_subplot(1,2,1)
+            currax.plot(ans['time'], units.convert(ans['p_cc'], 'Pa', 'psi'), label = 'CC Pressure (sim)')
+            currax.set_xlabel('time, sec')
+            currax.set_ylabel('Pressure, psi')
+            if t_offset:
+                currax.plot(self.test['time'], units.convert(self.test['p_cc'], 'Pa', 'psi'), label = 'CC Pressure (meas)')
+            currax.legend()
+            currax = currfig.add_subplot(1,2,2)
+        else:
+            currax = currfig.add_subplot(1,1,1)
+        if is_liquid and fuelpress_active.get():
+            currax.plot(ans['time'], units.convert(ans['p_fuelpresstank'], 'Pa', 'psi'), label = 'Fuel Pressurant (sim)')
+        if oxpress_active.get():
+            currax.plot(self.ans['time'], units.convert(ans['p_oxpresstank'], 'Pa', 'psi'), label = 'Ox Pressurant (sim)')
+        currax.plot(ans['time'], units.convert(ans['p_fueltank'], 'Pa', 'psi'), label = 'Fuel Tank (sim)')
+        currax.plot(ans['time'], units.convert(ans['p_oxmanifold'], 'Pa', 'psi'), label = 'Ox Manifold (sim)')
+        currax.plot(ans['time'], units.convert(ans['p_oxtank'], 'Pa', 'psi'), label = 'Ox Tank (sim)')
+        currax.set_xlabel('time, sec')
+        currax.set_ylabel('Pressure, psi')
+        if t_offset:
+            currax.plot(test['time'], units.convert(test['p_fueltank'], 'Pa', 'psi'), label = 'Fuel Tank (test)')
+            currax.plot(test['time'], units.convert(test['p_oxmanifold'], 'Pa', 'psi'), label = 'Ox Manifold (test)')
+            currax.plot(test['time'], units.convert(test['p_oxtank'], 'Pa', 'psi'), label = 'Ox Tank (test)')
+        currax.legend()
+
+        ## PRESSURE DROP ##
+        currfig = plotpane.add_page('Pressure Drops')
+        if is_liquid:
+            currax = currfig.add_subplot(1,2,1)
+            currax.plot(ans['time'], np.multiply(100.0, ans['fuel_pressure_drop']), label = 'Fuel Drop (sim)')
+            currax.set_xlabel('time, sec')
+            currax.set_ylabel("Pressure drop across injector, \n\% of tank pressure")
+            currax.legend()
+            currax = currfig.add_subplot(1,2,2)
+        else:
+            currax = currfig.add_subplot(1,1,1)
+        currax.plot(ans['time'], np.multiply(100.0, ans['ox_pressure_drop']), label = 'Ox Drop (sim)')
+        currax.plot(ans['time'], np.multiply(100.0, ( 1 - np.divide(ans['p_crit'], ans['p_oxtank']))), label = 'Ox Crit Drop (sim)')
+        currax.set_xlabel('time, sec')
+        currax.set_ylabel("Pressure drop across injector, \n\% of tank pressure")
+        currax.legend()
+
+        ## TEMPERATURES ##
+        currfig = plotpane.add_page('Temperatures')
+        if combustion_on:
+            currax = currfig.add_subplot(1,2,1)
+            currax.plot(ans['time'], ans['T_cc'], label = 'Chamber Temp (sim)')
+            currax.set_xlabel('time, sec')
+            currax.set_ylabel("Temperature, K")
+            currax.legend()
+            currax = currfig.add_subplot(1,2,2)
+        else:
+            currax = currfig.add_subplot(1,1,1)
+        currax.plot(ans['time'], units.convert(ans['T_oxtank'], 'K', 'C'), label = 'Ox Tank Temp (sim)')
+        currax.set_xlabel('time, sec')
+        currax.set_ylabel("Temperature, C")
+        currax.legend()
+
+        ## MASS FLOW ##
+        currfig = plotpane.add_page('Mass Flow')
+        gs = currfig.add_gridspec(2,2)
+        currax = currfig.add_subplot(gs[0,0])
+        currax.plot(ans['time'], ans['m_dot_fuel'], label = 'Fuel Rate (sim)')
+        currax.set_xlabel('time, sec')
+        currax.set_ylabel("Mass Flow, kg/s")
+        currax.legend()
+        currax = currfig.add_subplot(gs[0,1])
+        currax.plot(ans['time'], ans['m_dot_ox'], label = 'Ox Rate (sim)')
+        currax.set_xlabel('time, sec')
+        currax.set_ylabel("Mass Flow, kg/s")
+        currax.legend()
+        if (not is_liquid) and combustion_on:
+            currax = currfig.add_subplot(gs[1,0])
+            currax.plot(ans['time'], units.convert(np.sqrt(np.divide(ans['area_core'],0.5*np.pi)), 'm', 'in'))
+            currax.set_xlabel('time, sec')
+            currax.set_ylabel("Grain Port Diameter, in")
+            currax = currfig.add_subplot(gs[1,1])
+        else:
+            currax = currfig.add_subplot(gs[1,:])
+        currax.plot(ans['time'], ans['OF_i'], label = 'OF Ratio (sim)')
+        currax.set_xlabel('time, sec')
+        currax.set_ylabel("OF")
+        currax.legend()
+
+        ## OXIDIZER MASS FLUX ## (hybrid only)
+        if (not is_liquid) and combustion_on:
+            currfig = plotpane.add_page('Oxidizer Mass Flux')
+            currax = currfig.add_subplot(1,1,1)
+            currax.plot(ans['time'], np.divide(ans['m_dot_ox'], ans['area_core']) )
+            currax.set_xlabel('time, sec')
+            currax.set_ylabel("Oxidizer Mass Flux, kg/m2/s")
+
+        ## PERFORMANCE ##
+        if combustion_on:
+            currfig = plotpane.add_page('Performance')
+            currax = currfig.add_subplot(1,2,1)
+            currax.plot(ans['time'], ans['Isp_i'],label='I_sp')
+            currax.plot(ans['time'], ans['c_star_i'],label='C*')
+            currax.set_xlabel('time, sec')
+            currax.set_ylabel("Velocity, m/s")
+            currax.legend()
+            currax = currfig.add_subplot(1,2,2)
+            currax.plot(ans['time'], ans['c_f_i'] )
+            currax.set_xlabel('time, sec')
+            currax.set_ylabel("C_f")
+
+        ## NOZZLE ##
+        if combustion_on:
+            currfig = plotpane.add_page('Nozzle')
+            currax = currfig.add_subplot(1,2,1)
+            currax.plot(ans['time'], units.convert(ans['p_exit'],'Pa','atm'),label='Exit Pressure')
+            currax.plot(ans['time'], units.convert(ans['p_shock'],'Pa','atm'),label='Shock Pressure')
+            currax.set_xlabel('time, sec')
+            currax.set_ylabel("Pressure, atm")
+            currax.legend()
+            currax = currfig.add_subplot(1,2,2)
+            currax.plot(ans['time'], ans['M_e'],label='Exit Mach Number')
+            currax.set_xlabel('time, sec')
+            currax.set_ylabel("M_e")
+            currax.legend()
 
 SimulateLiquid = SimulateLiquidPage()
