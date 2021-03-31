@@ -86,8 +86,8 @@ t_final = EntryVar('t_final','60 [s]', 's', 'options', 'The end time of the simu
 delta_t = EntryVar('delta_t', '0.01 [s]', 's', 'options', 'Default time step used by the integrator.')
 drymass = EntryVar('mass_dry_rocket', '50 [lb]', 'kg', 'inputs', 'The mass of the rocket when empty of propellant.')
 flight_on = ToggleVar('flight_on', 0,structname='mode',linkedvars=[drymass],description='Simulate rocket flight? (Generates additional pressure head due to accelaration.')
-plots_on = ToggleVar('print_on', 1, structname='options',linkedvars=[],description="Plot data in MATLAB pop-up? Select for yes.")
-print_on = ToggleVar('plots_on', 1, structname='options',linkedvars=[],description="Print out summary info from run? Select for yes.")
+plots_on = ToggleVar('plots_on', 1, structname='options',linkedvars=[],description="Plot data in MATLAB pop-up? Select for yes.")
+print_on = ToggleVar('print_on', 1, structname='options',linkedvars=[],description="Print out summary info from run? Select for yes.")
 RAS_on = ToggleVar('RAS_on', 0, structname='options',linkedvars=[],description="Create RAS .eng thrust curve from simulation? Select for yes.")
 Simulation = Section('Simulation', [T_amb, P_amb, t_final, delta_t , flight_on, drymass, plots_on, print_on, RAS_on])
 

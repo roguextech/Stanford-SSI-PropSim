@@ -37,7 +37,10 @@ class MATVar(InputVar):
     def build(self, matlabeng):
         ''' Build this variable in the MATLAB engine's workspace. '''
         myval = self.get() # get full filename
-        matlabeng.eval(self.structname + '.' + self.name + " = '" + myval + "' ;", nargout = 0) # use eval to make struct variable in MATLAB workspace
+        if self.structname:
+            matlabeng.eval(self.structname + '.' + self.name + " = '" + myval + "' ;", nargout = 0) # use eval to make struct variable in MATLAB workspace
+        else:
+            matlabeng.eval(self.name + " = '" + myval + "' ;", nargout = 0)
 
     def makewidget(self, parent):
         ''' Create the tk widget for this input, using parent as the parent widget. '''

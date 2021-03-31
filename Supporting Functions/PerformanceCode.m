@@ -77,7 +77,7 @@ N2O = N2O_Properties(inputs.ox.T_tank);
 
 %Our integration variables are oxidizer mass and liquid oxidizer volume
 Mox = N2O.rho_l*(inputs.ox.V_l) + N2O.rho_g*(inputs.ox.V_tank - inputs.ox.V_l);
-if options.output_on
+if options.output_on || options.print_on
     fprintf('Initial oxidizer mass: %.2f kg\n', Mox);
 end
 

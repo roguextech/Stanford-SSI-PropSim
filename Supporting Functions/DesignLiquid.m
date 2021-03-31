@@ -37,6 +37,21 @@ mode.flight_on = 0;
 % oxidizer
 mode.type = 'liquid';
 
+if nargin < 4
+    output_on = false;
+end
+if isstruct(output_on)
+    if isfield(output_on,'plot_all')
+        plot_all = output_on.plot_all;
+    end
+    if isfield(output_on,'print_all')
+        print_all = output_on.print_all;
+    end
+else 
+   plot_all = output_on; % if output_on is a boolean, apply to both
+   print_all = output_on;
+end
+
 %% Run Performance Code
 max_iter = 100;
 param_tol = 0.005;
@@ -48,7 +63,7 @@ inputs.fuel_pressurant.set_pressure = design.p_tanks;
 inputs.exp_ratio = design.exp_ratio;
 
 % Initialize residual plot
-if output_on
+if isstruct(output_on) || output_on
     figure
     resid_axes = axes;
     figure
@@ -61,7 +76,9 @@ end
 parameters = errors;
 
 for ii = 1:max_iter
-    options.output_on = true;
+    options.plots_on = plot_all;
+    options.print_on = print_all; 
+    options.RAS_on = false; % dont bother writing, they'll just overwrite themselves
     options.dt = 0.005; % small dt for increased accuracy
     record = PerformanceCode(inputs, mode, test_data, options);
     dt_thrust_filter = 0.1;
@@ -79,7 +96,7 @@ for ii = 1:max_iter
             parameters_ii.(parameter_field_names{jj});
     end
     
-    if output_on
+    if isstruct(output_on) || output_on
         % Plot residuals
         cla(resid_axes)
         for jj = 1:length(parameter_field_names)
@@ -161,8 +178,9 @@ for ii = 1:max_iter
     inputs.fuel.V_tank = max(inputs.fuel.V_tank*V_fuel_change,inputs.fuel.V_l*1.01);
 end
 
-if output_on
+if isstruct(output_on) || output_on
     PrintResults(inputs);
+    options.output_on = true; % always plot and print info for converged run
     inputs.perf_results = PerformanceCode(inputs, mode, test_data);
 end
 

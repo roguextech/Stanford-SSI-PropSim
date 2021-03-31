@@ -8,12 +8,13 @@ from .MATVar import MATVar
 from .GasVar import GasVar
 from .Section import Section
 from .SimPage import SimPage
+from .SimulateLiquidPage import SimulateLiquidPage
 
 ''' Create input variables for DesignLiquid and organize into Sections. '''
 #Goal
-max_thrust = EntryVar('max_thrust','400 [N]','N','goal','The maximum desired thrust.')
+max_thrust = EntryVar('max_thrust','400 [lbf]','N','goal','The maximum desired thrust.')
 goal_of = EntryVar('OF','8.0','none','goal','The desired average OF ratio.')
-goal_impulse = EntryVar('total_impulse','18 [N]','N','goal','The desired total impulse (times seconds).')
+goal_impulse = EntryVar('total_impulse','18 [kN]','N','goal','The desired total impulse (times seconds).')
 min_fuel_dp = EntryVar('min_fuel_dp','0.25','none','goal','The minimum fuel injector dp as a decimal percentage [0,1] of tank pressure.')
 min_ox_dp = EntryVar('min_ox_dp','0.35','none','goal','The minimum fuel injector dp as a decimal percentage [0,1] of tank pressure.')
 ox_to_fuel_time = EntryVar('ox_to_fuel_time','1.0','none','goal','The ratio of ox flow time to fuel flow time.')
@@ -88,7 +89,9 @@ Combustion = Section("Combustion", combvars)
 T_amb = EntryVar('T_amb','280 [K]','K','initial_inputs','The ambient temperature.')
 P_amb = EntryVar('p_amb','12.5 [psi]','Pa','initial_inputs','The ambient pressure.')
 drymass = EntryVar('mass_dry_rocket', '50 [lb]', 'kg', 'initial_inputs', 'The mass of the rocket when empty of propellant.')
-Simulation = Section('Simulation', [T_amb, P_amb, drymass])
+plot_all = ToggleVar('plot_all',1,structname='output_on',description='Plot output in MATLAB for all PerformanceCode iterations? Select for yes.')
+print_all = ToggleVar('print_all',1,structname='output_on',description='Print output for all PerformanceCode iterations? Select for yes.')
+Simulation = Section('Simulation', [T_amb, P_amb, drymass,plot_all,print_all])
 
 ''' Create result variables for DesignLiquid. '''
 Fthrust = ResultVar('F_thrust', 'N', 'Generated thrust.')
@@ -128,7 +131,7 @@ DesLiqResultVars = [Fthrust, p_cc, p_oxtank, p_oxpresstank, p_fueltank, p_fuelpr
 
 ''' Create SimPage constructor arguments. '''
 DesLiqSections = [Goal, Design, Ox, OxPress, Fuel, FuelPress, Injector, Combustion, Simulation]
-DesLiqInputStructs = ["initial_inputs", "goal", "design"]
+DesLiqInputStructs = ["initial_inputs", "goal", "design","output_on"]
 DesLiqPlotnames =  {'Thrust':{'unit': 'N', 'resultvars': [Fthrust]}, 
                     'Chamber Pressure':{'unit':'Pa','resultvars':[]},
                     'Tank Pressures':{'unit':'Pa', 'resultvars':[p_oxtank, p_fueltank]},
@@ -145,7 +148,7 @@ class DesignLiquidPage(SimPage):
         super().__init__('DesignLiquid', DesLiqSections, DesLiqInputStructs)
 
     def prebuild(self, matlabeng):
-        # Create Fuel and Ox Pressurant objects, load Combustion Data, and set options.output_on off (stops matlab from plotting)
+        # Create Fuel and Ox Pressurant objects
         matlabeng.eval("initial_inputs.fuel_pressurant = Pressurant('fuel') ;", nargout = 0)
         matlabeng.eval("initial_inputs.ox_pressurant = Pressurant('oxidizer') ;", nargout = 0)
 
@@ -153,7 +156,7 @@ class DesignLiquidPage(SimPage):
         matlabeng.eval("initial_inputs.comb_data = load(initial_inputs.CombustionData) ; initial_inputs.comb_data = initial_inputs.comb_data.CombData ;", nargout = 0)
 
     def run(self, stdout):
-        input_struct_str = ','.join(self.inputstructs) + ', true' # input struct, also needs plot out indicator
+        input_struct_str = ','.join(self.inputstructs) # input struct
         
         self.matlabeng.eval( 'DesignLiquid(' + input_struct_str + ') ;' , nargout = 0, stdout = stdout)
 

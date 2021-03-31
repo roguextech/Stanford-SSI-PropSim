@@ -17,7 +17,7 @@ import numpy as np
 '''
 unit_lib = {
     "m" : { "m": 1, "in": 0.0254, "ft": 0.0254 * 12.0 } , # LINEAR DISTANCE (base: meter), area and volume also handled with ^ operator (e.g in^2)
-    "L" : { "L": 1, "m^3": 1E3, "mm^3":1E-6, "in^3": (0.0254**3)/1E-3, "ft^3": (0.0254**3.0)*(1728)/1E-3}, # VOLUME (base: Liter | Liter is special, so we include this despite power handling)
+    "L" : { "L": 1, "m^3": 1E3, "mm^3":1E-6, "in^3": (0.0254**3)/1E-3, "ft^3": (0.0254**3.0)*(1728)/1E-3, "gal":3.785411784}, # VOLUME (base: Liter | Liter is special, so we include this despite power handling)
     "N" : { "N": 1, "lbf": 4.4482216 }, # FORCE (base: Newton)
     "s" : { "s": 1, "hr": 3600, "min":60 }, # TIME (base: seconds)
     "g" : { "g": 1, "lb": 453.59237 , "slug": 14593.90}, # MASS (base: gram | lb is included for imperial-minded folk)

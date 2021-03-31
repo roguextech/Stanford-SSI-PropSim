@@ -51,7 +51,10 @@ class EntryVar(InputVar):
             myval = self.defaultval.split('[')[0].strip() # if entry is disabled, plug in a default value (won't matter except for the options struct)
         else:
             myval = units.convert(self.numeric_val, self.parsed_unit, self.baseunit) # convert to baseunit
-        matlabeng.eval(self.structname + '.' + self.name + '=' + str(myval) + ' ;', nargout = 0) # use eval to make struct variable in MATLAB workspace
+        if self.structname:
+            matlabeng.eval(self.structname + '.' + self.name + '=' + str(myval) + ' ;', nargout = 0) # use eval to make struct variable in MATLAB workspace
+        else:
+             matlabeng.eval(self.name + '=' + str(myval) + ' ;', nargout = 0)
 
     def makewidget(self, parent):
         ''' Create the tk widget for this input, using parent as the parent widget. '''

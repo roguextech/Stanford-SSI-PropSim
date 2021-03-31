@@ -112,22 +112,35 @@ class SimPage(ttk.Frame):
     def _thread_run(self):
         ''' Function for running in separate thread. '''
         output = StringIO() # use a stringIO object to collect MATLAB output
+        # io_thread = threading.Thread(name='io_thread',target=self.io_handle,args=(output,))
+        # io_thread.start()
         try:
             self.validate_button['state'] = 'disabled'
             self.run_button['state'] = 'disabled'
             self.inputPane.disable_tabs()
             self.run(output)
+            self.ans = self.matlabeng.workspace['ans'] # collect answer struct
+            self.inputPane.plot_sim()
+            self.saved = False # the new answer has not been saved yet!
         finally:
             print(output.getvalue()) # print stringIO stuff
             print()
-            output.close()
+            output.close()    
+            # io_thread.join()    
             self.validate_button['state'] = 'normal'
             self.run_button['state'] = 'normal'
             self.inputPane.enable_tabs()
-        self.ans = self.matlabeng.workspace['ans'] # collect answer struct
-        self.saved = False # the new answer has not been saved yet!
+        
         print("Run complete.")
-        self.inputPane.plot_sim()
+    
+    def io_handle(self,output):
+        ''' Subthread of _thread_run that handles the StringIO object 'output' while matlab thread executes. '''
+        while not output.closed:
+            mystr = output.getvalue()
+            if mystr:
+                output.truncate(0)
+                output.seek(0)
+                print(mystr)
 
     def _plot(self, plotpane):
         ''' Wrapper for plot() function that checks to make sure a solution exists first. '''

@@ -50,7 +50,8 @@ class GasVar(InputVar):
         matlabeng.eval(self.name+' = Gas();' ,nargout=0) # create gas object
         matlabeng.eval(self.name+'.c_v = ' + str(gas_library[mygas]['c_v']) + ' ;', nargout=0)
         matlabeng.eval(self.name+'.molecular_mass = ' + str(gas_library[mygas]['molecular_mass']) + ' ;', nargout=0)
-        matlabeng.eval(self.structname+'.gas_properties = '+self.name+' ;', nargout=0)
+        if self.structname:
+            matlabeng.eval(self.structname+'.gas_properties = '+self.name+' ;', nargout=0)
 
     def makewidget(self, parent):
         ''' Create the tk widget for this input, using parent as the parent widget. '''

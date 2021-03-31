@@ -12,7 +12,7 @@ import tkinter.ttk as ttk
 from .InputVar import InputVar
 
 class ToggleVar(InputVar):
-    def __init__(self, name, defaultval, baseunit = 'boolean', structname = None, description = '', linkedvars = None, disableon = True):
+    def __init__(self, name, defaultval, baseunit = 'boolean', structname = None, description = '', linkedvars = [], disableon = True):
         super().__init__(name, defaultval, baseunit, structname, description) # use parent constructor
         self.linkedvars = linkedvars
         self.disableon = disableon
@@ -35,7 +35,10 @@ class ToggleVar(InputVar):
     def build(self, matlabeng):
         ''' Build this variable in the MATLAB engine's workspace. '''
         myval = self.get()
-        matlabeng.eval(self.structname + '.' + self.name + '=' + str(myval) + ' ;', nargout = 0) # use eval to make struct variable in MATLAB workspace
+        if self.structname:
+            matlabeng.eval(self.structname + '.' + self.name + '=' + str(myval) + ' ;', nargout = 0) # use eval to make struct variable in MATLAB workspace
+        else:
+            matlabeng.eval(self.name + '=' + str(myval) + ' ;', nargout = 0)
 
     def makewidget(self, parent):
         ''' Create the tk widget for this input, using parent as the parent widget. '''
