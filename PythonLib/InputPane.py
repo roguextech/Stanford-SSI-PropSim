@@ -35,8 +35,10 @@ class InputPane(ttk.Notebook):
             return True # if solution has already been saved or doesn't exist, don't bother prompting
 
     def plot_sim(self):
-        self.plotPane.clear() # clear old plots
         self.simpages[self.curr_tab]._plot(self.plotPane)
+    
+    def clear_plots(self):
+        self.plotPane.clear()
 
     def save_sim(self):
         self.simpages[self.curr_tab].saveworkspace()
@@ -66,6 +68,9 @@ class InputPane(ttk.Notebook):
         for i in range(len(self.simpages)):
             if i is not self.curr_tab:
                 self.tab(i, state = 'disabled')
+    
+    def get_print_contents(self):
+        return self.mainwindow.printRedirector.get_contents()
 
     def ontabchange(self):
         if self.curr_tab is None:
@@ -73,7 +78,7 @@ class InputPane(ttk.Notebook):
             return
         if self.promptsave_sim(): # prompt for SimPage save on the tab you're switching from
             self.curr_tab = self.index(self.select()) # if saved or rejected option, set new tab
-            #self.mainwindow.update_plot(self.simpages[self.curr_tab].resultvars) # update plotPane
+            self.plot_sim() # replot based on answer from new sim page 
         else:
             hold = self.curr_tab
             self.curr_tab = None # prevent this tabchange function from being triggered again

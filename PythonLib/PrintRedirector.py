@@ -34,6 +34,12 @@ class PrintRedirector(stxt.ScrolledText):
             self.see(tk.END)
             self.check_range()
         self['state'] = 'disabled'
+
+    def get_contents(self):
+        self['state'] = 'normal'
+        contents = str(self.get("1.0", "end"))
+        self['state'] = 'disabled'
+        return contents
     
     def flush(self):
         print()

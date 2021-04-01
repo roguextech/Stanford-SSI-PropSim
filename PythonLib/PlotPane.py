@@ -35,9 +35,13 @@ class PlotPane(ttk.Notebook):
         self.figs = []
         self.canvases = []
         self.toolbars= []
+        self.names = []
 
         ## Add a default frame that just contains a message describing what will be here eventually
-        fig = self.add_page("Welcome")
+        self.make_default()
+
+    def make_default(self):
+        self.add_page("Welcome")
 
     def set_page(self, index = 0):
         ''' Set which page to look at. '''
@@ -47,6 +51,7 @@ class PlotPane(ttk.Notebook):
         ''' Make a new plotting page. Returns the figure.Figure() object on that page.'''
         frame = ttk.Frame(self) # make frame to hold canvas
         self.figs.append(figure.Figure())
+        self.names.append(page_title)
         self.canvases.append(FigureCanvasTkAgg(self.figs[-1], master = frame))
         self.canvases[-1].get_tk_widget().pack(expand=True, fill=tk.BOTH)
         self.toolbars.append( NavigationToolbar2Tk(self.canvases[-1], frame) )
@@ -96,6 +101,8 @@ class PlotPane(ttk.Notebook):
         self.canvases = []
         self.figs = []
         self.toolbars = []
+        self.names = []
 
-
+    def save_plots(self):
+        return (self.canvases, self.figs, self.toolbars, self.names)
 

@@ -119,14 +119,15 @@ class SimPage(ttk.Frame):
             self.run_button['state'] = 'disabled'
             self.inputPane.disable_tabs()
             self.run(output)
-            self.ans = self.matlabeng.workspace['ans'] # collect answer struct
+            self.matlabeng.workspace['output'] = self.matlabeng.workspace['ans']  
+            self.ans = self.matlabeng.workspace['output'] # collect answer struct
             self.inputPane.plot_sim()
             self.saved = False # the new answer has not been saved yet!
         finally:
             print(output.getvalue()) # print stringIO stuff
             print()
             output.close()    
-            # io_thread.join()    
+            # io_thread.join()
             self.validate_button['state'] = 'normal'
             self.run_button['state'] = 'normal'
             self.inputPane.enable_tabs()
@@ -144,11 +145,13 @@ class SimPage(ttk.Frame):
 
     def _plot(self, plotpane):
         ''' Wrapper for plot() function that checks to make sure a solution exists first. '''
-        if not self.ans: 
-            print("There is no solution to plot. Please run a simulation and try again. ")
-            return
-        self.plot(plotpane)
-        plotpane.draw_all()
+        plotpane.clear() # clear old plots
+        if self.ans: 
+            self.plot(plotpane) # call plot function
+            plotpane.draw_all() # draw
+        else:
+            plotpane.make_default()
+        
 
     def makewidget(self, parent, matlabeng):
         ''' Uses the ttk.Frame constructor to initialize the frame, then builds and adds each section plus the Validate and Run buttons. '''
@@ -231,6 +234,9 @@ class SimPage(ttk.Frame):
     def saveworkspace(self):
         ''' Saves the workspace to savefilename - if hasn't been defined yet, prompts user to select a file. '''
         if self.savefilename:
+            # Get text from the printredirector and add it to the workspace
+            self.matlabeng.workspace['printstr'] = self.inputPane.get_print_contents()
+            # Use MATLAB eng to save workspace
             self.matlabeng.save(self.savefilename, nargout = 0)
             self.saved = True
         else:
@@ -260,11 +266,16 @@ class SimPage(ttk.Frame):
                     return
 
             self.matlabeng.eval("load('"+filepicked+"');", nargout = 0) # load the workspace
-            if self.matlabeng.exist('ans', 'var') == 1: # if a solution exists in the loaded workspace
-                newans = self.matlabeng.workspace['ans']
+            if self.matlabeng.exist('output', 'var') == 1: # if a solution exists in the loaded workspace
+                newans = self.matlabeng.workspace['output']
                 if self.ans is None or self.ans != newans: # if there wasn't a solution before or if solution is not what already was
                     self.ans = newans # load new solution
                     self.saved = False # loading a solution counts as a run
+                    self.inputPane.plot_sim() # plot the solution
 
             for section in self.sections:
                 section.load_from_workspace(self.matlabeng) # update all inputvars to match MAT file
+            
+            if self.matlabeng.exist('printstr','var') == 1: # if command line str was saved in this MAT file, load it
+                print('clc') # clear command line 
+                print(self.matlabeng.workspace['printstr']) # print the saved contents
