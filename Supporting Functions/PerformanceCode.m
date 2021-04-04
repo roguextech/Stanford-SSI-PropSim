@@ -47,7 +47,10 @@ atm_to_Pa = 101325; % 1 atm in Pa
 %% Integration Parameters
 default_options.t_final  =  60;    % Integration time limit
 default_options.dt      = 0.01;  % Timestep [s]
-default_options.output_on = true;
+default_options.output_on = false; % if this is on, all variables below are considered to be true
+default_options.plots_on = true; % plot results
+default_options.RAS_on = true; % create .eng thrust curve for use in OpenRocket or RASAero
+default_options.print_on = true; % print out summary information
 if nargin < 4
     options = default_options;
 else
@@ -60,6 +63,12 @@ else
     if ~isfield(options, 'output_on')
         options.output_on = default_options.output_on;
     end
+    if ~isfield(options, 'plots_on')
+        options.plots_on = default_options.plots_on;
+    end
+    if ~isfield(options, 'print_on')
+        options.print_on = default_options.print_on;
+    end
 end
 tspan = 0:options.dt:options.t_final;
 
@@ -68,7 +77,7 @@ N2O = N2O_Properties(inputs.ox.T_tank);
 
 %Our integration variables are oxidizer mass and liquid oxidizer volume
 Mox = N2O.rho_l*(inputs.ox.V_l) + N2O.rho_g*(inputs.ox.V_tank - inputs.ox.V_l);
-if options.output_on
+if options.output_on || options.print_on
     fprintf('Initial oxidizer mass: %.2f kg\n', Mox);
 end
 
@@ -114,7 +123,7 @@ if options.output_on
 end
 
 %% Plot Results
-if options.output_on
+if options.output_on || options.plots_on
     if test_data.test_plots_on
         % Load Imported Data for comparison
         [test_time, pft, pom, pot, we, ft, pcc] = LoadDataVars(test_data.test_data_file, test_data.t_offset);
@@ -295,7 +304,8 @@ if options.output_on
         ylabel('Exit Mach Number ()')
         legend('Simulation')
     end
-
+end
+if options.output_on || options.print_on
     %Use trapezoidal integration
     impulse = trapz(time, F_thrust);
     Mox_initial = record.m_ox(1);
@@ -312,7 +322,8 @@ if options.output_on
         Mox/Mfuel);
     fprintf('Isp: %.1f s\t\tC*: %.0f m/s\t\tC_f: %.2f\n', ...
         record.Isp/g_0, record.c_star, record.c_f)
-
+end
+if options.output_on || options.RAS_on
     % F_thrust_RASAERO must be less than or equal to 32 entries
     % Inputs
     num_entries = 30;
@@ -359,7 +370,11 @@ function [test_time, pft, pom, pot, we, ft, pcc] = LoadDataVars(filename, t_offs
     we = 0;
     ft = 0;
     pcc = 0;
-    load(['.\Test Data\' filename])
+    if contains(filename, '/') || contains(filename, '\')
+        load(filename)
+    else
+        load(['.\Test Data\' filename])
+    end
     test_time = test_time + t_offset;
     if length(test_time) == 1
         error('Variable ''test_time'' not present in imported data.\n');

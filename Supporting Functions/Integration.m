@@ -468,7 +468,7 @@ record = recording_values;
 time_rec(n_rec + 1:end) = [];
 
 fields = fieldnames(recording_values);
-for ii = 1:length(fields)
+for ii = 1:length(fields) 
     record.(fields{ii})(n_rec + 1:end) = [];
     record.(fields{ii}) = interp1(time_rec, ...
         record.(fields{ii}), tspan, 'linear', 'extrap');
