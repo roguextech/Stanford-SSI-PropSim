@@ -35,8 +35,8 @@ fuel_grainlength = EntryVar('grain_length','16.5 [in]','m','inputs.fuel','The le
 fuel_grainOD = EntryVar('grain_od','4.84 [in]','m','inputs.fuel','The outer diameter of the fuel grain.')
 fuel_portrad = EntryVar('port_rad','1.2 [in]','m','inputs.fuel','The initial internal diameter of the fuel grain.')
 fuel_n = EntryVar('n','0.67','none','inputs.fuel','Regression rate parameter, n.')
-fuel_a = EntryVar('a','0.052 [mm]','m','inputs.fuel','Regression rate parameter, a.')
-fuel_rho = EntryVar('rho','880 [kg]','kg','inputs.fuel','The mass per cubic meter of the fuel grain.')
+fuel_a = EntryVar('a','0.052 [mm*s^-1]','m*s^-1','inputs.fuel','Regression rate parameter, a.')
+fuel_rho = EntryVar('rho','880 [kg*m^-3]','kg*m^-3','inputs.fuel','The density of the fuel grain.')
 Fuel = Section('Fuel', [fuel_rho, fuel_grainlength, fuel_grainOD, fuel_portrad, fuel_n, fuel_a])
 
 # Injector Section

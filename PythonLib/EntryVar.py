@@ -3,9 +3,6 @@
 
     An InputVar class for a string-input value. Implements conversions to baseunit from the string-parsed unit before sending to MATLAB
     (assumes that the input unit has already been validated).
-
-    The ToggleVar has two additional optional argument: linkedvars and disableon. If linkedvars is a list of InputVar items, 
-    those items will be disabled whenever the ToggleVar is in the disableon state.
 '''
 
 import tkinter as tk
@@ -32,9 +29,10 @@ class EntryVar(InputVar):
             val = str(val)
         splitstr = val.strip('] ')
         splitstr = splitstr.split('[')
-        if len(splitstr) == 1: # if no unit, convert to preferred unit from base unit
+        if len(splitstr) == 1 and len(self.baseunit.split('*')) == 1: # if no unit and base unit isn't composite, convert to preferred unit from base unit
             pref_unit = units.get_preferred_unit(self.baseunit)
-            val = str( round( units.convert(float(splitstr[0]), self.baseunit, pref_unit), 6 ) ) + ' [' + pref_unit + ']'
+            if pref_unit != 'unitless': # dont bother converting between unitless values
+                val = str( round( units.convert(float(splitstr[0]), self.baseunit, pref_unit), 6 ) ) + ' [' + pref_unit + ']'
 
         holdstate = self.widget['state']
         self.widget['state'] = 'normal'
@@ -59,7 +57,7 @@ class EntryVar(InputVar):
     def makewidget(self, parent):
         ''' Create the tk widget for this input, using parent as the parent widget. '''
         self.var = tk.StringVar(parent, self.defaultval) # a Tk variable storing current status of this variable
-        self.widget = ttk.Entry(parent, style = 'EntryVar.TEntry', textvariable=self.var, validate='focus', validatecommand=lambda *a: 'invalid' not in self.widget.state()) 
+        self.widget = ttk.Entry(parent, style = 'EntryVar.TEntry', textvariable=self.var)#, validate='focus', validatecommand=lambda *a: 'invalid' not in self.widget.state()) 
         self.widget.bind("<FocusOut>", lambda e: self.validate())
         self.widget.bind("<FocusIn>", lambda e: self.on_entry())           
 

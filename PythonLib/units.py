@@ -23,6 +23,7 @@ unit_lib = {
     "g" : { "g": 1, "lb": 453.59237 , "slug": 14593.90}, # MASS (base: gram | lb is included for imperial-minded folk)
     "Pa" :{ "Pa": 1, "psi": 6894.7572931783, "atm": 101325, "bar": 1e5 }, # PRESSURE (base: Pascal)
     "K" : { "K": 1, "R": 5.0/9.0, "C": 1, "F": 5.0/9.0 }, #TEMPERATURE (base: Kelvin)
+    "J" : { "J": 1}, # ENERGY (base: Joule)
     "unitless" : { "unitless": 1, "none": 1 } # UNITLESS
 }
 ''' The unit_offset stores the offsets of a unit from the base unit's zero reference, in the base unit. If a unit is not found in the unit_offset
@@ -69,6 +70,11 @@ class Units():
     
     def get_preferred_unit(self, unit):
         ''' Returns the preferred unit compatible with unit. '''
+        # Check for composite unit
+        split_units = [x.strip(' ()') for x in unit.split('*')] 
+        if len(split_units) > 1:
+            return '*'.join(self.get_preferred_unit(x) for x in split_units)
+
         comp_units = self.get_compatible_units(unit)
         for my_unit in comp_units:
             splitstr = my_unit.split('^')
@@ -91,6 +97,17 @@ class Units():
         ''' Returns a list of units compatible with the given unit. 
             The returned list will contain the given unit, unless no other compatible units are found.
         '''  
+        # Check for composite unit
+        split_units = [x.strip(' ()') for x in unit.split('*')] 
+        if len(split_units) > 1:
+            comp_units = ['Any combination of units in the following tuples:'] # start list
+            for x in split_units:
+                mycomps = self.get_compatible_units(x)
+                mycomps[0] = '(' + mycomps[0]
+                mycomps[-1] += ')'
+                comp_units = comp_units + mycomps
+            return comp_units
+
         my_base_unit = None 
         # Search for the unit in the unit lib
         for base_unit in unit_lib:
@@ -118,9 +135,9 @@ class Units():
             return []
         else:
             if power == 1:
-                return unit_lib[my_base_unit].keys() # return list of keys for that base unit
+                return list(unit_lib[my_base_unit].keys()) # return list of keys for that base unit
             else:
-                return [key + '^' + str(power) for key in unit_lib[my_base_unit].keys() ] # return list of key with power modifier
+                return list([key + '^' + str(power) for key in unit_lib[my_base_unit].keys() ]) # return list of key with power modifier
 
     def validate_units(self, from_unit, to_unit): 
         ''' Returns true if from_unit can be converted to to_unit by this module. Otherwise returns false. '''
@@ -130,14 +147,32 @@ class Units():
         except KeyError:
             return False
 
-    def convert(self, value, from_unit, to_unit, power = 1):
+    def convert(self, value, from_unit, to_unit, power = 1.0):
         ''' Returns the conversion of a value in one unit to a compatible unit.
             value: the value to be converted (can also be a np array of values)
             from_unit: the units of value
             to_unit: the units to which value is converted 
 
             Raises a KeyError if the units passed are incompatible or invalid.
+
+            For composite units, the units must have the same structure, i.e.
+            CORRECT:
+                from_unit = 'kg * m^-2 * s' and to_unit = 'lb * in^-2 * s' are compatible, but
+            INCORRECT
+                to_unit = 'kg * m^-2 * s' and to_unit = 's * lb * in^-2 ' are NOT compatible
         '''
+        # Check for composite unit
+        split_fromunits = [x.strip(' ()') for x in from_unit.split('*')] 
+        split_tounits = [x.strip(' ()') for x in to_unit.split('*')]
+        if len(split_fromunits) != len(split_tounits):
+            raise KeyError # if have different number of composite units
+        elif len(split_fromunits) > 1:
+            new_val = value
+            for i in range(0,len(split_fromunits)):
+                new_val = self.convert(new_val,split_fromunits[i], split_tounits[i])
+            return new_val
+
+
         my_base_unit = None
         # Search for the from_unit in the unit lib
         for base_unit in unit_lib:
@@ -158,10 +193,10 @@ class Units():
 
             if len(powercheck_from) == len(powercheck_to) and len(powercheck_from) > 1 :
                 try:
-                    if int(powercheck_from[1]) != int(powercheck_to[1]):
+                    if float(powercheck_from[1]) != float(powercheck_to[1]):
                         raise KeyError # if powers arent equal, return Key Error
                     else:
-                        return self.convert(value, from_unit, to_unit, int(powercheck_from[1])) # collect the power of the unit
+                        return self.convert(value, from_unit, to_unit, float(powercheck_from[1])) # collect the power of the unit
                 except:
                     raise KeyError
             elif len(powercheck_from) != len(powercheck_to):
@@ -194,7 +229,7 @@ class Units():
                                 break
                         break
         # Convert to base unit, checking to see if an offset exists 
-        value = np.multiply(value, np.power(unit_lib[my_base_unit][from_unit], power) ) # value (from_unit) * # (base_unit/from_unit) = new value (base_unit)
+        value = np.multiply(value, np.power(unit_lib[my_base_unit][from_unit], float(power)) ) # value (from_unit) * # (base_unit/from_unit) = new value (base_unit)
         try:
             value = np.add(value, unit_offset[my_base_unit][from_unit])
         except KeyError:
@@ -204,12 +239,13 @@ class Units():
             value = np.subtract(value, unit_offset[my_base_unit][to_unit])
         except KeyError:
             pass # KeyError indicates no offset exists for this unit pair
-        value = np.divide(value, np.power(unit_lib[my_base_unit][to_unit], power))
+        value = np.divide(value, np.power(unit_lib[my_base_unit][to_unit], float(power)))
         
         return np.multiply(value, mult) # apply the multiplier and return
 
 
 units = Units()
+
 
 ### FUNCTIONALITY TESTING ###
 # print( 0 == units.convert(-273.15, 'C', 'K'))

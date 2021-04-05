@@ -14,7 +14,7 @@ from .SimulateLiquidPage import SimulateLiquidPage
 #Goal
 max_thrust = EntryVar('max_thrust','400 [lbf]','N','goal','The maximum desired thrust.')
 goal_of = EntryVar('OF','8.0','none','goal','The desired average OF ratio.')
-goal_impulse = EntryVar('total_impulse','18 [kN]','N','goal','The desired total impulse (times seconds).')
+goal_impulse = EntryVar('total_impulse','18 [kN*s]','N*s','goal','The desired total impulse.')
 min_fuel_dp = EntryVar('min_fuel_dp','0.25','none','goal','The minimum fuel injector dp as a decimal percentage [0,1] of tank pressure.')
 min_ox_dp = EntryVar('min_ox_dp','0.35','none','goal','The minimum fuel injector dp as a decimal percentage [0,1] of tank pressure.')
 ox_to_fuel_time = EntryVar('ox_to_fuel_time','1.0','none','goal','The ratio of ox flow time to fuel flow time.')
@@ -51,7 +51,7 @@ fuel_Vliq = EntryVar('V_l','0.66 [L]','m^3','initial_inputs.fuel','The volume of
 fuel_tankID = EntryVar('tank_id','3.75 [in]','m','initial_inputs.fuel','The internal diameter of the fuel tank.')
 fuel_hoffset = EntryVar('h_offset_tank','24 [in]','m','initial_inputs.fuel','The distance from the bottom of the fuel tank to the injector.')
 fuel_dflowline = EntryVar('d_flowline','0.25 [in]','m','initial_inputs.fuel','The diameter of the flowline to the injector.')
-fuel_rhotank = EntryVar('rho','795 [kg]','kg','initial_inputs.fuel','The mass per cubic meter of the fuel.')
+fuel_rhotank = EntryVar('rho','795 [kg*m^-3]','kg*m^-3','initial_inputs.fuel','The density of the fuel.')
 Fuel = Section('Fuel', [fuel_Vtank, fuel_Vliq, fuel_tankID, fuel_hoffset, fuel_dflowline, fuel_rhotank])
 
 # FuelPress section

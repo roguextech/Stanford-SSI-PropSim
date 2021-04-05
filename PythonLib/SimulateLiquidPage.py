@@ -37,7 +37,7 @@ fuel_Vliq = EntryVar('V_l','0.66 [L]','m^3','inputs.fuel','The volume of the liq
 fuel_tankID = EntryVar('tank_id','3.75 [in]','m','inputs.fuel','The internal diameter of the fuel tank.')
 fuel_hoffset = EntryVar('h_offset_tank','24 [in]','m','inputs.fuel','The distance from the bottom of the fuel tank to the injector.')
 fuel_dflowline = EntryVar('d_flowline','0.25 [in]','m','inputs.fuel','The diameter of the flowline to the injector.')
-fuel_rhotank = EntryVar('rho','795 [kg]','kg','inputs.fuel','The mass per cubic meter of the fuel.')
+fuel_rhotank = EntryVar('rho','795 [kg*m^-3]','kg*m^-3','inputs.fuel','The density of the fuel.')
 Fuel = Section('Fuel', [fuel_Vtank, fuel_Vliq, fuel_tankID, fuel_hoffset, fuel_dflowline, fuel_rhotank])
 
 # FuelPress section

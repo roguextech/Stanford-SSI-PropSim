@@ -70,8 +70,8 @@ class MainWindow(tk.Tk):
         # Create styles
         self.style = ttk.Style()
         self.style.theme_use('clam')
-        self.style.configure('EntryVal.TEntry',font=('TkDefaultFont', 10), fg = 'black', bg = 'white')
-        self.style.map('EntryVal.TEntry', background = [('!invalid','white'),('invalid', '#f59a9a' )])
+        self.style.configure('EntryVar.TEntry',font=('TkDefaultFont', 10), fg = 'black', bg = 'white')
+        self.style.map('EntryVar.TEntry', fieldbackground = [(['!invalid'],'white'),(['invalid'], '#f59a9a' )])
         self.style.configure('SectionHeader.TLabel', font = ('TkDefaultFont', 12,'bold'))
 
         # Bind close event to stop animation updating if the window is closed
