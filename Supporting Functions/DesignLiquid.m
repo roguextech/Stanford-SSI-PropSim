@@ -1,4 +1,4 @@
-function [inputs] = DesignLiquid(initial_inputs, goal, design, output_on)
+function [perf_results] = DesignLiquid(initial_inputs, goal, design, options)
 %%DesignLiquid Generates a liquid engine design matching the performance
 %%specifications and constraints provided.
 %   Inputs:
@@ -14,7 +14,12 @@ function [inputs] = DesignLiquid(initial_inputs, goal, design, output_on)
 %       - design.ox_ullage: initial oxidizer tank volume ullage fraction
 %       - design.exp_ratio: design expansion ratio
 %   Outputs:
-%       - inputs: engine design parameters (see PerformanceCode.m)
+%       - perf_results: a structure with the following fields
+%            - perf_results.inputs : inputs for PerformanceCode run
+%            - perf_results.mode : mode settings for PerformanceCode run
+%            - perf_results.test_data : test data for PerformanceCode run
+%            - perf_results.options : options for PerformanceCode run
+%            - perf_results.output : output of PerformanceCode run
 
 format long
 
@@ -38,18 +43,18 @@ mode.flight_on = 0;
 mode.type = 'liquid';
 
 if nargin < 4
-    output_on = false;
+    options = false;
 end
-if isstruct(output_on)
-    if isfield(output_on,'plot_all')
-        plot_all = output_on.plot_all;
+if isstruct(options)
+    if isfield(options,'plot_all')
+        plot_all = options.plot_all;
     end
-    if isfield(output_on,'print_all')
-        print_all = output_on.print_all;
+    if isfield(options,'print_all')
+        print_all = options.print_all;
     end
 else 
-   plot_all = output_on; % if output_on is a boolean, apply to both
-   print_all = output_on;
+   plot_all = options; % if options is a boolean, apply to both
+   print_all = options;
 end
 
 %% Run Performance Code
@@ -63,7 +68,7 @@ inputs.fuel_pressurant.set_pressure = design.p_tanks;
 inputs.exp_ratio = design.exp_ratio;
 
 % Initialize residual plot
-if isstruct(output_on) || output_on
+if isstruct(options) || options
     figure
     resid_axes = axes;
     figure
@@ -76,11 +81,11 @@ end
 parameters = errors;
 
 for ii = 1:max_iter
-    options.plots_on = plot_all;
-    options.print_on = print_all; 
-    options.RAS_on = false; % dont bother writing, they'll just overwrite themselves
-    options.dt = 0.005; % small dt for increased accuracy
-    record = PerformanceCode(inputs, mode, test_data, options);
+    perf_options.plots_on = plot_all;
+    perf_options.print_on = print_all; 
+    perf_options.RAS_on = false; % dont bother writing, they'll just overwrite themselves
+    perf_options.dt = 0.005; % small dt for increased accuracy
+    record = PerformanceCode(inputs, mode, test_data, perf_options);
     dt_thrust_filter = 0.1;
     [max_thrust,m_dot_max,p_cc_max] = ...
         FindMaxThrust(record,dt_thrust_filter);
@@ -96,7 +101,7 @@ for ii = 1:max_iter
             parameters_ii.(parameter_field_names{jj});
     end
     
-    if isstruct(output_on) || output_on
+    if isstruct(options) || options
         % Plot residuals
         cla(resid_axes)
         for jj = 1:length(parameter_field_names)
@@ -178,10 +183,24 @@ for ii = 1:max_iter
     inputs.fuel.V_tank = max(inputs.fuel.V_tank*V_fuel_change,inputs.fuel.V_l*1.01);
 end
 
-if isstruct(output_on) || output_on
+perf_results.inputs = inputs;
+perf_results.mode = mode;
+perf_results.options = options;
+if isstruct(options) || options
     PrintResults(inputs);
-    options.output_on = true; % always plot and print info for converged run
-    inputs.perf_results = PerformanceCode(inputs, mode, test_data);
+    perf_options.output_on = true; % always plot and print info for converged run
+    if isstruct(options)
+        if isfield(options, 'RAS_on')
+           perf_options.RAS_on = options.RAS_on; % if specified whether to run RAS file, set option
+           if isfield(options, 'RAS_name')
+                perf_options.RAS_name = options.RAS_name; % if a RAS file has been specified, set its name
+           end
+        end
+    end
+    perf_results.options = options;
+    perf_results.output = PerformanceCode(inputs, mode, test_data, perf_options);
+    
+    fprintf("\n NOTE: Use save(<MATfile-name>, '-struct', perf_results) to save output to SimulateLiquid-compatible workspace. \n");
 end
 
 end

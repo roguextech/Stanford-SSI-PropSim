@@ -5,6 +5,7 @@ from .EntryVar import EntryVar
 from .ResultVar import ResultVar
 from .ToggleVar import ToggleVar
 from .MATVar import MATVar
+from .TXTVar import TXTVar
 from .GasVar import GasVar
 from .Section import Section
 from .SimPage import SimPage
@@ -88,10 +89,12 @@ Combustion = Section("Combustion", combvars)
 # Simulation
 T_amb = EntryVar('T_amb','280 [K]','K','initial_inputs','The ambient temperature.')
 P_amb = EntryVar('p_amb','12.5 [psi]','Pa','initial_inputs','The ambient pressure.')
-drymass = EntryVar('mass_dry_rocket', '50 [lb]', 'kg', 'initial_inputs', 'The mass of the rocket when empty of propellant.')
-plot_all = ToggleVar('plot_all',1,structname='output_on',description='Plot output in MATLAB for all PerformanceCode iterations? Select for yes.')
-print_all = ToggleVar('print_all',1,structname='output_on',description='Print output for all PerformanceCode iterations? Select for yes.')
-Simulation = Section('Simulation', [T_amb, P_amb, drymass,plot_all,print_all])
+drymass = EntryVar('mass_dry_rocket', '50 [lb]', 'kg', 'initial_inputs', 'The mass of the rocket when empty of propellant, for flight simulation.')
+plot_all = ToggleVar('plot_all',1,structname='options',description='Plot output in MATLAB for all PerformanceCode iterations? Select for yes.')
+print_all = ToggleVar('print_all',1,structname='options',description='Print output for all PerformanceCode iterations? Select for yes.')
+RAS_name = TXTVar('RAS_name', 'F_thrust_RASAERO.txt',structname='options',description='File name to which ENG file is saved.')
+RAS_on = ToggleVar('RAS_on', 0, structname='options',linkedvars=[RAS_name],description="Create RAS .eng thrust curve from converged solution? Select for yes.")
+Simulation = Section('Simulation', [T_amb, P_amb, drymass,plot_all,print_all, RAS_on, RAS_name])
 
 ''' Create result variables for DesignLiquid. '''
 Fthrust = ResultVar('F_thrust', 'N', 'Generated thrust.')
@@ -131,7 +134,7 @@ DesLiqResultVars = [Fthrust, p_cc, p_oxtank, p_oxpresstank, p_fueltank, p_fuelpr
 
 ''' Create SimPage constructor arguments. '''
 DesLiqSections = [Goal, Design, Ox, OxPress, Fuel, FuelPress, Injector, Combustion, Simulation]
-DesLiqInputStructs = ["initial_inputs", "goal", "design","output_on"]
+DesLiqInputStructs = ["initial_inputs", "goal", "design","options"]
 DesLiqPlotnames =  {'Thrust':{'unit': 'N', 'resultvars': [Fthrust]}, 
                     'Chamber Pressure':{'unit':'Pa','resultvars':[]},
                     'Tank Pressures':{'unit':'Pa', 'resultvars':[p_oxtank, p_fueltank]},

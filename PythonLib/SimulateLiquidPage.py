@@ -6,6 +6,7 @@ from .EntryVar import EntryVar
 from .ResultVar import ResultVar
 from .ToggleVar import ToggleVar
 from .MATVar import MATVar
+from .TXTVar import TXTVar
 from .GasVar import GasVar
 from .Section import Section
 from .SimPage import SimPage
@@ -84,12 +85,13 @@ T_amb = EntryVar('T_amb','280 [K]','K','inputs','The ambient temperature.')
 P_amb = EntryVar('p_amb','12.5 [psi]','Pa','inputs','The ambient pressure.')
 t_final = EntryVar('t_final','60 [s]', 's', 'options', 'The end time of the simulation.')
 delta_t = EntryVar('delta_t', '0.01 [s]', 's', 'options', 'Default time step used by the integrator.')
-drymass = EntryVar('mass_dry_rocket', '50 [lb]', 'kg', 'inputs', 'The mass of the rocket when empty of propellant.')
+drymass = EntryVar('mass_dry_rocket', '50 [lb]', 'kg', 'inputs', 'The mass of the rocket when empty of propellant, for flight simulation.')
 flight_on = ToggleVar('flight_on', 0,structname='mode',linkedvars=[drymass],description='Simulate rocket flight? (Generates additional pressure head due to accelaration.')
 plots_on = ToggleVar('plots_on', 1, structname='options',linkedvars=[],description="Plot data in MATLAB pop-up? Select for yes.")
 print_on = ToggleVar('print_on', 1, structname='options',linkedvars=[],description="Print out summary info from run? Select for yes.")
-RAS_on = ToggleVar('RAS_on', 0, structname='options',linkedvars=[],description="Create RAS .eng thrust curve from simulation? Select for yes.")
-Simulation = Section('Simulation', [T_amb, P_amb, t_final, delta_t , flight_on, drymass, plots_on, print_on, RAS_on])
+RAS_name = TXTVar('RAS_name', 'F_thrust_RASAERO.txt',structname='options',description='File name to which ENG file is saved.')
+RAS_on = ToggleVar('RAS_on', 0, structname='options',linkedvars=[RAS_name],description="Create RAS .eng thrust curve from simulation? Select for yes.")
+Simulation = Section('Simulation', [T_amb, P_amb, t_final, delta_t , flight_on, drymass, plots_on, print_on, RAS_on, RAS_name])
 
 ''' Create result variables for SimulateLiquid. '''
 Fthrust = ResultVar('F_thrust', 'N', 'Generated thrust.')
@@ -173,10 +175,13 @@ class SimulateLiquidPage(SimPage):
             we: weight from load cell in N
             ft: thrust from thrust cell in N
         '''
-        if is_design:
-            ans = self.ans['perf_results']
-        else:
-            ans = self.ans
+        try:
+            if is_design:
+                ans = self.ans['output']
+            else:
+                ans = self.ans
+        except:
+            return # if fail to get an answer to plot, don't bother trying
 
         combustion_on = comb_on.get() # plotting combustion data?
         test_plots_on = test_plotting.get() # plotting test data?

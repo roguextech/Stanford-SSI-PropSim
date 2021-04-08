@@ -15,7 +15,11 @@ function record = PerformanceCode(inputs, mode, test_data, options)
 %       - options: set of options
 %           - t_final: simulation time limit
 %           - dt: output time resolution
-%           - output_on: true for plots, false for no plots
+%           - output_on: turns on RAS, printing, and plotting
+%           - plots_on: turns on just plotting
+%           - print_on: turns on summary printing
+%           - RAS_on: turns on RAS .eng file generation
+%           - RAS_name: file name of .eng file
 %   OUTPUTS:
 %       - Isp: specific impulse [s]
 %       - time: time vector over burn for F_thrust
@@ -50,6 +54,7 @@ default_options.dt      = 0.01;  % Timestep [s]
 default_options.output_on = false; % if this is on, all variables below are considered to be true
 default_options.plots_on = true; % plot results
 default_options.RAS_on = true; % create .eng thrust curve for use in OpenRocket or RASAero
+default_options.RAS_name = 'F_thrust_RASAERO.txt'; % name of .eng file (don't include location!)
 default_options.print_on = true; % print out summary information
 if nargin < 4
     options = default_options;
@@ -68,6 +73,15 @@ else
     end
     if ~isfield(options, 'print_on')
         options.print_on = default_options.print_on;
+    end
+    if ~isfield(options, 'RAS_on')
+        options.RAS_on = default_options.RAS_on;
+    end
+    if ~isfield(options, 'RAS_name')
+        options.RAS_name = default_options.RAS_name;
+    end
+    if ~(contains(options.RAS_name,'/') || contains(options.RAS_name,'\\'))
+        options.RAS_name = ['./Outputs/' options.RAS_name]; % if no file location specified, put in Outputs
     end
 end
 tspan = 0:options.dt:options.t_final;
@@ -351,7 +365,7 @@ if options.output_on || options.RAS_on
     F_thrust_RASAERO(1:(num_entries),2) = F_thrust(round(linspace(2,length(F_thrust),num_entries)))';
     F_thrust_RASAERO(num_entries,:) = [time(end), 0];
 
-    fid = fopen('./Outputs/F_thrust_RASAERO.txt','w');
+    fid = fopen(options.RAS_name,'w');
     fprintf(fid, '; Name diameter(mm) Length(mm) delay propellant_weight(kg) mass(kg)\n');
     fprintf(fid, '%s %.0d %.0f %s %.2f %.2f %s\n', engine_name, diameter, length_motorcase, delay, propellant_weight, tot_weight, manufacturer);
     fprintf(fid, '%.3f %.3f\n', F_thrust_RASAERO');
