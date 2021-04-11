@@ -120,7 +120,7 @@ Useability:
 
 Accuracy:
 - Upgrading of integration method. Removal of all of the Euler elements remaining
-  in the integrator, so that it's fully handled by variable timestep ode15s. 
+  in the integrator, so that it's fully handled by variable timestep ode15s
 - Implementing of drag in flow lines and cooling from orifices in mainline code. 
 - Upgrading of nitrous tank model to simulate pressure dip. Ongoing research effort. 
   Could possibly approximate by just preventing boil off for a certain time during burn.  
@@ -134,3 +134,6 @@ Capability:
 - Monte Carlo simulation. Be able to input a spread of input parameters and have the 
   code automatically provide the spread in a given output parameter. 
 - Add more propellant combinations to the database. 
+- Investigate differences between simulation and test data for
+  supercharged oxidizer tank case
+

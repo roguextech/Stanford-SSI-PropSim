@@ -132,7 +132,7 @@ inputs.d_cc = 3.75*in_to_m;
 inputs.nozzle_efficiency = 0.95;
 inputs.nozzle_correction_factor = 0.9830;
 
-% Estimated combustion efficiency
+%Estimated combustion efficiency
 inputs.c_star_efficiency = 0.85;
 
 %Nozzle Throat diameter
