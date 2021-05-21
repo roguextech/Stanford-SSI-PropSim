@@ -56,6 +56,7 @@ simPages = [SimulateLiquid, SimulateHybrid, DesignLiquid]
 class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__() #use inherited constructor for tk.Tk
+        self.iconbitmap(default="PythonLib/ssi_logo.ico")
 
         # Build the primary frame that contains all other items.
         self.mainframe = ttk.Frame(self)

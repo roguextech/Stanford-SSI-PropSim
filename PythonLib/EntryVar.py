@@ -73,6 +73,12 @@ class EntryVar(InputVar):
         if len(splitstr) > 2: # protect against too many arguments before using eval()
             self.set_err()
             return "Error: Variable " + self.name + " has an unparseable input: " + self.get()
+        elif len(splitstr) == 1 :
+            try:
+                check = float(splitstr[0]) # check if no unit that the input is numeric
+            except:
+                self.set_err()
+                return "Error: Variable " + self.name + " has an unparseable input: " + self.get()
 
         try:
             parse_this = splitstr[0].strip()
@@ -81,7 +87,7 @@ class EntryVar(InputVar):
             self.numeric_val = float(eval(parse_this,{"__builtins__":None},{})) # use eval to parse input for numeric expressions, protecting against harmful input
         except:
             self.set_err()
-            return "Error: Variable " + self.name + " has an unparseable value: " + self.splitstr[0]
+            return "Error: Variable " + self.name + " has an unparseable value: " + self.get()
         if len(splitstr) > 1 : # if a unit was included
             if units.validate_units(splitstr[1].strip(), self.baseunit):
                 self.parsed_unit = splitstr[1]

@@ -1,0 +1,5 @@
+python <= 3.8 # This depends on your MATLAB type - see: https://www.mathworks.com/content/dam/mathworks/mathworks-dot-com/support/sysreq/files/python-compatibility.pdf
+mplcursors==0.4 # for plot marking
+numpy==1.20.1 
+matplotlib==3.3.4
+matlab==0.1

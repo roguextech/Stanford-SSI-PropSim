@@ -162,7 +162,7 @@ class SimulateLiquidPage(SimPage):
     def run(self, stdout):
         ''' Handles running the actual simulation. '''
         input_struct_str = ','.join(self.inputstructs)
-        self.matlabeng.eval( 'PerformanceCode(' + input_struct_str + ') ;' , stdout = stdout, nargout = 0 )
+        self.matlabeng.eval( 'PerformanceCode(' + input_struct_str + ') ;' , stdout = stdout, stderr = stdout, nargout = 0 )
 
     def plot(self, plotpane, is_liquid = True, is_design = False):
         ''' Handles plotting. Update here to change how output is graphed. '''

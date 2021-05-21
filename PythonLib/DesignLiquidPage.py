@@ -161,8 +161,10 @@ class DesignLiquidPage(SimPage):
     def run(self, stdout):
         input_struct_str = ','.join(self.inputstructs) # input struct
         
-        self.matlabeng.eval( 'DesignLiquid(' + input_struct_str + ') ;' , nargout = 0, stdout = stdout)
+        self.matlabeng.eval( 'DesignLiquid(' + input_struct_str + ') ;' , nargout = 0, stdout = stdout, stderr = stdout)
 
+        self.inputPane.mainwindow.cmdPane.put("save('./Data Analysis/SimulateLiquid_fromDesignLiquid.mat', '-struct', 'output');") # put this in the cmd line to prompt for save
+        
     def plot(self, plotpane):
         ''' Plotting! Uses SimulateLiquidPage's defined version with different arguments. '''
         SimulateLiquidPage.plot(self, plotpane, is_design = True)

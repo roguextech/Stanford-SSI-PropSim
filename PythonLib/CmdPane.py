@@ -42,6 +42,9 @@ class CmdPane(ttk.Frame):
     def get(self):
         return self.var.get()
 
+    def put(self, msg):
+        self.var.set(str(msg))
+
     def on_return(self):
         # Process input
         myline = self.var.get()
@@ -84,7 +87,7 @@ class CmdPane(ttk.Frame):
         output = StringIO()
         try:
             self.entry.unbind("<Return>") # prevent additional commands from being sent
-            self.matlabeng.eval(cmd, nargout = 0, stdout = output)
+            self.matlabeng.eval(cmd, nargout = 0, stdout = output, stderr = output)
         finally:
             results = output.getvalue()
             if results == None or results == '':

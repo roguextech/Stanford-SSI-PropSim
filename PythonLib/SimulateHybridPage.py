@@ -144,7 +144,7 @@ class SimulateHybridPage(SimPage):
     def run(self, stdout):
         input_struct_str = ','.join(self.inputstructs)
         
-        self.matlabeng.eval( 'PerformanceCode(' + input_struct_str + ') ;' , nargout = 0, stdout = stdout)
+        self.matlabeng.eval( 'PerformanceCode(' + input_struct_str + ') ;' , nargout = 0, stdout = stdout, stderr = stdout)
     
     def plot(self, plotpane):
         ''' Plotting! Uses SimulateLiquidPage's defined version with different arguments. '''
