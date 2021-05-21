@@ -85,10 +85,18 @@ class CmdPane(ttk.Frame):
 
     def _cmd_thread(self, cmd):
         output = StringIO()
+        errout = StringIO()
         try:
             self.entry.unbind("<Return>") # prevent additional commands from being sent
-            self.matlabeng.eval(cmd, nargout = 0, stdout = output, stderr = output)
+            self.matlabeng.eval(cmd, nargout = 0, stdout = output, stderr = errout)
+        except:
+            pass # errors are caught in errout, which will be output differently from runtime errors
         finally:
+            errs = errout.getvalue()
+            if errs != None and errs != '':
+                errs = errs.split('\n') # First line is "error using eval", which we don't need to print
+                errs = '\n'.join(errs[1:-1])
+                print("{0}".format(errs))
             results = output.getvalue()
             if results == None or results == '':
                 pass

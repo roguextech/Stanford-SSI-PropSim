@@ -36,10 +36,10 @@ import time
 # Results: each has a name, unit, and an associated plot name(s) (None if not plotted); by default, all are assumed to belong to the 'ans' struct
 
 from .InputPane import InputPane
-# from .OutputPane import OutputPane
 from .PlotPane import PlotPane
 from .CmdPane import CmdPane
 from .PrintRedirector import PrintRedirector
+from .ErrorRedirector import ErrorRedirector
 from .Menubar import MenuBar
 
 # IMPORT SIMPAGES and then add them to the simPages list to have them show up on the application
@@ -109,12 +109,12 @@ class MainWindow(tk.Tk):
         ''' Starts the application loop, including the error logger and print redirector. '''
         old_stdout = sys.stdout
         old_stderr = sys.stderr
-        # error_logger = ErrorLogger(self, old_stderr, ERROR_LOG)
-        #with error_logger as sys.stderr:
-        with self.printRedirector as sys.stdout:
-            # Send a friendly message to get started
-            print("Welcome to PropSim! This is where all print-out is directed. You can also use the command line below to interact\n"
-                "with the active MATLAB session.")
-            self.mainloop() # start GUI application running, on close will call kill() function above
+        error_redirect = ErrorRedirector(self) # redirects Python runtime errors not caught by print outs to pop-ups
+        with error_redirect as sys.stderr:
+            with self.printRedirector as sys.stdout:
+                # Send a friendly message to get started
+                print("Welcome to PropSim! This is where all print-out is directed. You can also use the command line below to interact\n"
+                    "with the active MATLAB session.")
+                self.mainloop() # start GUI application running, on close will call kill() function above
         sys.stdout = old_stdout
         sys.stderr = old_stderr
